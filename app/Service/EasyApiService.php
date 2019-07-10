@@ -1,11 +1,5 @@
 <?php
 
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 namespace App\Service;
 
 /**
@@ -19,7 +13,9 @@ class EasyApiService implements EasyApiServiceInterface{
     const PAYMENT_API_URL = 'https://api.dibspayment.eu/v1/payments';
     const GET_PAYMENT_DETAILS_URL_PREFIX = 'https://api.dibspayment.eu/v1/payments/';
     const GET_PAYMENT_DETAILS_URL_TEST_PREFIX = 'https://test.api.dibspayment.eu/v1/payments/';
-   
+    const CHARGE_PAYMENT_URL_PREFIX  = 'https://api.dibspayment.eu/v1/payments/';
+    const CHARGE_PAYMENT_URL_TEST_PREFIX  = 'https://test.api.dibspayment.eu/v1/payments/';
+
     public $curl;
 
     public function __construct() {
@@ -64,8 +60,16 @@ class EasyApiService implements EasyApiServiceInterface{
       }
     }
 
-    public function chargePayment() {
-        
+    public function chargePayment($url, $data) {
+      $this->curl->post($url, $data);
+      if($this->curl->isSuccess()) {
+          error_log('transaction charged');
+          return $this->curl->getResponse();
+      } else {
+          error_log('transaction charge failed');
+          error_log($this->curl->getResponse());
+          throw new \App\Exceptions\EasyException($this->curl->getResponse(), $this->curl->getHttpStatus());
+      }
     }
 
     public function refundPayment() {

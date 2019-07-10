@@ -24,6 +24,7 @@ class VerifyCsrfToken extends Middleware
         'postForm',
         'callback',
         'capture',
-        'order_created'
+        'order_created',
+        'charge_created'
     ];
 }

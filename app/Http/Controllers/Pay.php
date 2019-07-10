@@ -8,6 +8,7 @@ use App\MerchantSettings;
 use App\Service\EasyService;
 use App\Service\EasyApiService;
 use App\PaymentDetails;
+use App\CheckoutObject;
 
 class Pay extends Controller
 {
@@ -18,12 +19,16 @@ class Pay extends Controller
     private $request;
     private $easyService;
     private $easyApiService;
+    private $checkoutObject;
 
-    public function __construct(ShopifyApiService $service, Request $request, EasyService $easyService, EasyApiService $easyApiService) {
+    public function __construct(ShopifyApiService $service,
+                                Request $request, EasyService $easyService,
+            EasyApiService $easyApiService, CheckoutObject $checkoutObject) {
         $this->shopifyAppService = $service;
         $this->request = $request;
         $this->easyService = $easyService;
         $this->easyApiService = $easyApiService;
+        $this->checkoutObject = $checkoutObject;
     }
 
     /**
@@ -34,24 +39,22 @@ class Pay extends Controller
      */
     public function __invoke(Request $request)
     {
-        try {
-            return $this->createPayment($request);
+       try {
+            return $this->startPayment($request);
         }catch(\App\Exceptions\EasyException $e) {
-            error_log($e->getMessage() . ' code' . $e->getFile() . $e->getLine());
+           error_log($e->getMessage());
         } 
         catch(\Exception $e) {
-          echo $e->getMessage();
+           error_log($e->getMessage());
        }
     }
 
-    protected function createPayment(Request $request) {
+    protected function startPayment(Request $request) {
       $settingsCollection = MerchantSettings::getSettingsByShopName(urlencode($request->get('x_shop_name')));
       $accessToken = $settingsCollection->first()->access_token;
       $shopUrl = $settingsCollection->first()->shop_url;
-      
-      
       $checkout = $this->shopifyAppService->getCheckoutById($accessToken, $shopUrl, $request->get('x_reference'));
-      
+      $this->checkoutObject->setCheckout($checkout);
       if(empty($checkout)) {
           throw new \Exception('Checkout with id: '. $request->get('x_reference') .' not found');
       }
@@ -65,7 +68,7 @@ class Pay extends Controller
         $url = EasyApiService::PAYMENT_API_URL;
       }
       $settings = current($settingsCollection->toArray());
-      $data = json_encode($this->easyService->generateRequestParams($settings, $checkout));
+      $data = json_encode($this->easyService->generateRequestParams($settings, $this->checkoutObject));
       $this->easyApiService->setAuthorizationKey($key);
       if($result = $this->easyApiService->createPayment($url, $data)) {
            $result_decoded = json_decode($result);
@@ -74,12 +77,12 @@ class Pay extends Controller
            $requestParams['shop'] = $settingsCollection->first()->shop_url;
            $requestParams['paymentId'] = $result_decoded->paymentId;
            $requestParams['checkout_token'] = $checkout['token'];
-           $paymentDetails = new PaymentDetails();
-           $paymentDetails->checkout_id = $checkout['id'];
-           $paymentDetails->dibs_paymentid = $result_decoded->paymentId;
-           $paymentDetails->shop_url = $settingsCollection->first()->shop_url;
-           $paymentDetails->test = $test;
-           $paymentDetails->save();
+           $params = ['checkout_id' => $checkout['id'],
+                      'dibs_paymentid' => $result_decoded->paymentId, 
+                      'shop_url' => $settingsCollection->first()->shop_url,
+                      'test' => $test];
+           
+           PaymentDetails::addOrUpdateDetails($params);
            session(['request_params' => json_encode($requestParams)]);
            $redirectUrl = $result_decoded->hostedPaymentPageUrl . '&language=' . $settingsCollection->first()->language;
            return redirect($redirectUrl);

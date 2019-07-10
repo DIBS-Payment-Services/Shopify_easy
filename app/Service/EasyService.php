@@ -18,33 +18,29 @@ class EasyService implements EasyServiceInterface {
         $this->request = $request;
     }
 
-    public function generateRequestParams($settings, $checkout = []): array {
+    public function generateRequestParams($settings, \App\CheckoutObject $checkoutObject): array {
             $data = array(
             'order' => array(
-                'items' => $this->getRequestObjectItems($checkout),
-                'amount' => round($checkout['total_price'] * 100),
-                'currency' => $checkout['presentment_currency'],
+                'items' => $this->getRequestObjectItems($checkoutObject),
+                'amount' => $checkoutObject->getAmount(),
+                'currency' => $checkoutObject->getCurrency(),
                 'reference' => $this->request->get('x_reference')),
              'checkout' => array(
                     'termsUrl' => $settings['terms_and_conditions_url'],
                 ),
             );
-          $iso2countryCode = isset($checkout['shipping_address']['country_code']) ? $checkout['shipping_address']['country_code'] : $checkout['billing_address']['country_code'];
-          
-          
-          error_log($iso2countryCode);
+          $iso2countryCode = $checkoutObject->getIso2countryCode();
           $res = DirectoryCountry::getCountry($iso2countryCode)->first();
           $iso3countryCode = $res->iso3_code;
-
           $phone = null;
-          if(!empty($checkout['customer']['phone'])) {
-              $phone= $checkout['customer']['phone'];
+          if(!empty($checkoutObject->getCustomerPhone())) {
+              $phone= $checkoutObject->getCustomerPhone();
           } 
-          if(!empty($checkout['billing_address']['phone'])){
-               $phone= $checkout['billing_address']['phone'];
+          if(!empty($checkoutObject->getBillinAddresPhone())){
+               $phone= $checkoutObject->getBillinAddresPhone();
           }
-          if(!empty($checkout['shipping_address']['phone'])){
-               $phone= $checkout['shipping_address']['phone'];
+          if(!empty($checkoutObject->getShippingAddresPhone())){
+               $phone= $checkoutObject->getShippingAddresPhone();
           }
           $phone = str_replace([' ', '-', '(', ')'], '', $phone);
           if(!preg_match('/^\+[0-9]*/', $phone)) {
@@ -73,18 +69,18 @@ class EasyService implements EasyServiceInterface {
                $phonePrefix = substr($phone, 0, 3);
                $number = substr($phone, 3);
                $data['checkout']['consumer'] = array(
-                            'email' => $checkout['customer']['email'],
+                            'email' => $checkoutObject->getCustomerEmail(),
                             "shippingAddress" => array(
-                                "addressLine1"=>  isset($checkout['shipping_address']['address1']) ? $checkout['shipping_address']['address1'] : $checkout['billing_address']['address1'],
-                                "addressLine2"=>  isset($checkout['shipping_address']['address2']) ? $checkout['shipping_address']['address2'] : $checkout['billing_address']['address2'],
-                                "postalCode"=>  isset($checkout['shipping_address']['zip']) ? $checkout['shipping_address']['zip'] : $checkout['billing_address']['zip'] ,
-                                "city"=>  isset($checkout['shipping_address']['city']) ? $checkout['shipping_address']['city'] : $checkout['billing_address']['city'],
+                                "addressLine1"=>  $checkoutObject->getAddressLine1(),
+                                "addressLine2"=>  $checkoutObject->getAddressLine2(),
+                                "postalCode"=>  $checkoutObject->getPostalCode(),
+                                "city"=>  $checkoutObject->getCity(),
                                 "country"=>  $iso3countryCode,
                               ),
                           'phoneNumber' => ['prefix' => $phonePrefix,   'number' => $number],
                           'privatePerson' => array(
-                                'firstName' => $checkout['customer']['first_name'],
-                                'lastName' => $checkout['customer']['last_name'],
+                                'firstName' => $checkoutObject->getCustomerFirstName(),
+                                'lastName' => $checkoutObject->getcustomerLastName(),
                          )
                  );
               $data['checkout']['merchantHandlesConsumerData'] = true;
@@ -124,31 +120,28 @@ class EasyService implements EasyServiceInterface {
              $data['checkout']['integrationType'] = 'HostedPaymentPage';
              $appUrl = env('SHOPIFY_APP_URL');
              $callbackUrl = $this->request->get('x_url_callback');
-             $x_gateway_reference = $this->request->get('x_reference');
-             $x_account_id = $this->request->get('x_account_id');
-             $x_amount = $this->request->get('x_amount');
-             $x_currency = $this->request->get('x_currency');
-             $shop = $settings['shop_url'];
-             
-             
              $x_reference = $this->request->get('x_reference');
-             
-             $url = "https://{$appUrl}/callback?callback_url={$callbackUrl}&x_reference=$x_reference";
-                    
+             $shop_url = $settings['shop_url'];
+             $reservationCreatedurl = "https://{$appUrl}/callback?callback_url={$callbackUrl}&x_reference={$x_reference}&shop_url={$shop_url}";
              $data['notifications'] = 
                  ['webhooks' => 
                     [['eventName' => 'payment.reservation.created', 
-                     'url' => $url,
+                     'url' => $reservationCreatedurl,
                      'authorization' => substr(str_shuffle(MD5(microtime())), 0, 10)]]
                  ];
     return $data;
     }
 
-   protected function getRequestObjectItems($checkout = []) {
+   /**
+    * 
+    * @param type $checkout
+    * @return type
+    */
+   public function getRequestObjectItems(\App\CheckoutObject $checkoutObject) {
             $items = [];
-            
+
             // Products
-            foreach ($checkout['line_items'] as $item) {
+            foreach ($checkoutObject->getLineItems() as $item) {
                $unitPrice =  round($item['price'] / (1 + $this->getTaxRate($item)) * 100); //round($item['price'] * $item['quantity'] * 100);
                $taxRate =  round($this->getTaxRate($item) * 10000);
                $taxAmount = round($this->getTaxPrice($item) * 100);
@@ -166,22 +159,22 @@ class EasyService implements EasyServiceInterface {
                     'netTotalAmount' => $netTotalAmount);
             }
             //Shipping
-            if($shippingLine = $this->getShippingLine($checkout)) { 
+            if($shippingLine = $this->getShippingLine($checkoutObject)) { 
                 $items[] = $shippingLine; 
             }
 
             //Discount
-            if($this->getDiscountAmount($checkout) > 0) {
-                $items[] = $this->discountRow($this->getDiscountAmount($checkout));
+            if($this->getDiscountAmount($checkoutObject) > 0) {
+                $items[] = $this->discountRow($this->getDiscountAmount($checkoutObject));
             }
 
             return $items;
     }
 
-    protected function getShippingLine($checkout) {
+    public function getShippingLine(\App\CheckoutObject $checkoutObject) {
         $shipping = [];
-        if(!empty(($checkout['shipping_lines']))) {
-            $current = current($checkout['shipping_lines']);
+        if(!empty(($checkoutObject->getShippingLines()))) {
+            $current = current($checkoutObject->getShippingLines());
             $unitPrice = round($current['price'] / (1 + $this->getTaxRate($current)) * 100);  //round($current['price'] * 100);
             $taxRate =  round($this->getTaxRate($current) * 10000);
             $taxAmount = round($this->getTaxPrice($current) * 100);
@@ -221,10 +214,10 @@ class EasyService implements EasyServiceInterface {
         
     }
 
-    protected function getDiscountAmount($checkout) {
+    protected function getDiscountAmount(\App\CheckoutObject $checkoutObject) {
         $amount = 0;
-        if(!empty($checkout['total_discounts'])) {
-            $amount = $checkout['total_discounts'];
+        if(!empty($checkoutObject->getTotalDiscounts())) {
+            $amount = $checkoutObject->getTotalDiscounts();
         }
         return $amount;
     }
@@ -240,6 +233,20 @@ class EasyService implements EasyServiceInterface {
                 'taxAmount' => 0,
                 'grossTotalAmount' => -round($amount * 100),
                 'netTotalAmount' => -round($amount * 100)];
+
+    }
+
+    public function getFakeOrderRow($amount) {
+         return [
+                'reference' => 'product',
+                'name' => 'Product',
+                'quantity' => 1,
+                'unit' => 'pcs',
+                'unitPrice' => $amount,
+                'taxRate' => 0,
+                'taxAmount' => 0,
+                'grossTotalAmount' =>$amount,
+                'netTotalAmount' => $amount];
 
     }
 

@@ -31,6 +31,9 @@
 
 <br/>
 <form action="/postForm" method="POST">
+      
+      Merchantid:<br>
+      <input type="text" name="easy_merchantid" value="{{ $easy_merchantid }}"><br>
       Live secret key:<br>
       <input type="text" name="easy_secret_key" value="{{ $easy_secret_key }}"><br>
       Test secret key:<br>

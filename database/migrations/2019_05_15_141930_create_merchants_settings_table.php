@@ -19,6 +19,7 @@ class CreateMerchantsSettingsTable extends Migration
             $table->string('shop_id')->nullable();
             $table->string('shop_url')->nullable();
             $table->string('access_token')->nullable();
+            $table->string('easy_merchantid')->nullable();
             $table->string('easy_secret_key')->nullable();
             $table->string('easy_test_secret_key')->nullable();
             $table->string('allowed_customer_type')->nullable();

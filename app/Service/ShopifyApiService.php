@@ -2,8 +2,6 @@
 
 namespace App\Service;
 
-use App\MerchantSettings;
-
 class ShopifyApiService  implements ShopifyApiServiceInterface{
 
     const OAUTH_ACCESS_TOKEN_URL = '/admin/oauth/access_token';
@@ -78,8 +76,6 @@ class ShopifyApiService  implements ShopifyApiServiceInterface{
         }
     }
     
-    
-
     /**
      * 
      * @param string $acessToken
@@ -91,53 +87,17 @@ class ShopifyApiService  implements ShopifyApiServiceInterface{
         $curl = new \Curl\Curl();
         $curl->setHeader('X-Shopify-Access-Token', $acessToken);
         $date =  date("Y-m-d",strtotime("-1 day")) .  "T00:00:00-00:00";
-        
         $previousCheckoutId = $checkoutId - 1;
-        
         $url =  $this->getCheckoutsUrl($shopUrl). "?since_id=$previousCheckoutId";
-        error_log($url);
         $curl->get($url);
         $result = $curl->getResponse(); 
         if($curl->isSuccess()) {
            $result_array = json_decode($result, true);
            foreach($result_array['checkouts'] as $checkout) {
-                error_log($checkout['id'] .'-'. $checkout['created_at']);
                 if($checkout['id'] == $checkoutId) {
                     return $checkout;
                 }
            }
-        } else {
-            error_log($curl->getResponse());
-        }
-    }
-    
-    public function getOrderByCheckoutId($acessToken, $shopUrl ,$checkoutId) {
-        $curl = new \Curl\Curl();
-        $curl->setHeader('X-Shopify-Access-Token', $acessToken);
-        $url =  $this->getOrderCheckoutUrl($shopUrl);
-        $curl->get($url);
-        $result = $curl->getResponse(); 
-        if($curl->isSuccess()) {
-           
-          
-            echo $checkoutId;
-           
-           $result_array = json_decode($result, true);
-           
-           var_dump($result_array);
-           
-           exit;
-           foreach($result_array['orders'] as $order) {
-                error_log($order['checkout_id']);
-                if($order['checkout_id'] == $checkoutId) {
-                    
-                    echo 1234;
-                    return $checkout;
-                }
-           }
-           
-           exit;
-           
         } else {
             error_log($curl->getResponse());
         }
@@ -148,12 +108,13 @@ class ShopifyApiService  implements ShopifyApiServiceInterface{
      * @param string $url
      * @param array $params
      */
-    public function paymentCallback($url, $params) {
+    public function paymentCallback($url, $params, $type = null) {
         $curl = new \Curl\Curl();
         $curl->post($url, $params);
         if($curl->isSuccess()) {
            error_log('callback success...');
         } else {
+           error_log($curl->getResponse());
            error_log('callback failed...');
         }
     }

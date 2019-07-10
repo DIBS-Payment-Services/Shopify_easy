@@ -45,7 +45,8 @@ class MerchantSettings extends Controller
             'terms_and_conditions_url' => 'required',
             'terms_and_conditions_url'  =>'url',
             'easy_secret_key'  => 'required',
-            'easy_test_secret_key' =>  'required']);
+            'easy_test_secret_key' =>  'required',
+            'easy_merchantid' => 'required']);
         
         \App\MerchantSettings::saveShopSettings($request);
         return redirect('form')

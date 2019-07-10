@@ -15,8 +15,6 @@ use App\Service\EasyApiService;
  */
 class OrderCreatedHook extends Controller{
     
-   
-    
     /**
      * Handle the incoming request.
      *
@@ -26,55 +24,26 @@ class OrderCreatedHook extends Controller{
     public function __invoke(EasyApiService $easyApiService, Request $request)
     {
         try{
-        error_log('checkout id=' . $request->get('checkout_id'));
-        
-        
         $collectionPaymentDetail = PaymentDetails::getDetailsByCheckouId($request->get('checkout_id'));
-        
-        error_log('shop_url' . $collectionPaymentDetail->first()->shop_url);
-        
         $settingsCollection = MerchantSettings::getSettingsByShopUrl($collectionPaymentDetail->first()->shop_url);
-        
-        
-        
         $paymentId = $collectionPaymentDetail->first()->dibs_paymentid;
-        
-        error_log('payment_id' . $paymentId);
-        
         if($collectionPaymentDetail->first()->test == 1) {
             $urlUpdateReference = 'https://test.api.dibspayment.eu/v1/payments/'.  $paymentId .'/referenceinformation';
-            
             $key = ShopifyApiService::decryptKey($settingsCollection->first()->easy_test_secret_key);
-            error_log($settingsCollection->first()->easy_test_secret_key);
             $url = ShopifyApiService::GET_PAYMENT_DETAILS_URL_TEST_PREFIX . $paymentId;
-        
-            
-            
         }else {
             $urlUpdateReference = 'https://api.dibspayment.eu/v1/payments/'. $paymentId .'/referenceinformation';
             $key = ShopifyApiService::decryptKey($settingsCollection->first()->easy_test_secret_key);
             $url = ShopifyApiService::GET_PAYMENT_DETAILS_URL_TEST_PREFIX . $paymentId;
         }
-         error_log(2);
-        
-        
         $easyApiService->setAuthorizationKey($key);
-         
         $paymentJson = $easyApiService->getPayment($url);
         $paymentObj = json_decode($paymentJson);
         $jsonData = json_encode(['reference' => $request->get('name'), 'checkoutUrl' => $paymentObj->payment->checkout->url]);
-        
-         error_log(3);
-        
-        error_log($key . '--' . $urlUpdateReference. '--' . $jsonData);
-        
-        
-        
-        
         $easyApiService->updateReference($urlUpdateReference, $jsonData);
           header("HTTP/1.1 200 OK");
         } catch( \Exception $e ) {
-             header("HTTP/1.1 500 Callback filed");
+           header("HTTP/1.1 500 Callback filed");
         }
     }
 }

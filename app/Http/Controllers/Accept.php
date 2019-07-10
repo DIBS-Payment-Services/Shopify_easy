@@ -7,8 +7,6 @@ use App\Service\ShopifyApiService;
 use App\MerchantSettings;
 use App\Service\EasyApiService;
 
-use App\PaymentDetails;
-
 class Accept extends Controller
 {
     protected $easyApiService;
@@ -42,14 +40,23 @@ class Accept extends Controller
         if(!empty($paymentDetailsList->payment->summary->reservedAmount)) {
             $params['url'] = $request->get('x_url_complete'); 
             $requestInitialParams = json_decode(session('request_params'), true);
-            $params['params'] = ['x_account_id'        => $requestInitialParams['x_account_id'],	
-                                  'x_amount'            => $requestInitialParams['x_amount'],	
+            $params['params'] = [ 'x_amount'            => $requestInitialParams['x_amount'],	
                                   'x_currency'          => $requestInitialParams['x_currency'],	
                                   'x_gateway_reference' => $requestInitialParams['paymentId'],	
                                   'x_reference'         => $requestInitialParams['x_reference'],	
                                   'x_result'            => 'completed',	
                                   'x_timestamp'         => date("Y-m-d\TH:i:s\Z"),
-                                  'x_transaction_type'  => 'authorization'];
+                                  'x_transaction_type'  => 'authorization',
+                                  'x_account_id'        => $requestInitialParams['x_account_id']];
+                
+            if($requestInitialParams['x_test']) {
+                $params['params']['x_test'] = 'true';
+            }
+            
+            if(isset($requestInitialParams['x_account_id'])) {
+                 $params['params']['x_account_id'] = $requestInitialParams['x_account_id'];
+            } 
+            
             $params['params']['x_signature'] = $this->shopifyApiService->calculateSignature($params['params'], $requestInitialParams['gateway_password']);
             return view('easy-accept', $params);
         } else {

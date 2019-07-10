@@ -23,7 +23,7 @@ Route::post('capture', 'Capture');
 
 
 Route::post('order_created', 'OrderCreatedHook');
-
+Route::post('charge_created', 'ChargeCreatedEasyHook');
 
 Route::get('installinit', 'Index@install');
 Route::post('callback', 'Callback');

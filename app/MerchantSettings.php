@@ -10,7 +10,7 @@ class MerchantSettings extends Model
     protected $table = 'merchants_settings';
     protected $fillable = ['shop_name', 'shop_url', 'access_token', 'gateway_password', 'shop_id']; 
     protected $shopifyAppService;
-    
+
     public function __construct(array $attributes = array()) {
         //$this->shopifyAppService = $service;
         parent::__construct($attributes);
@@ -25,10 +25,15 @@ class MerchantSettings extends Model
     {
         return self::query()->where('shop_url', $shopUrl)->get();
     }
-    
-    public static function getSettingsByShopName($shopname) 
+
+    public static function getSettingsByShopName($shopname)
     {
          return self::query()->where('shop_name', $shopname)->get();
+    }
+
+    public static function getSettingsByMerchantId($merchantID)
+    {
+        return self::query()->where('easy_merchantid', $merchantID)->get();
     }
 
     /**
