@@ -74,12 +74,8 @@ class Capture extends Controller
          $shopifyApiService->paymentCallback($url, $params);
             header("HTTP/1.1 200 OK");
         } catch(App\Exceptions\EasyException $e) {
-            return header("HTTP/1.1 500 Callback filed");
+            header("HTTP/1.1 500 Callback filed");
         }
-         
-         
-        return header("HTTP/1.1 500 Callback filed");
-        
     }
 
     protected function flushHeader() {

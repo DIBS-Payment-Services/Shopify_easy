@@ -41,7 +41,7 @@ class OrderCreatedHook extends Controller{
         $paymentObj = json_decode($paymentJson);
         $jsonData = json_encode(['reference' => $request->get('name'), 'checkoutUrl' => $paymentObj->payment->checkout->url]);
         $easyApiService->updateReference($urlUpdateReference, $jsonData);
-          header("HTTP/1.1 200 OK");
+           header("HTTP/1.1 200 OK");
         } catch( \Exception $e ) {
            header("HTTP/1.1 500 Callback filed");
         }
