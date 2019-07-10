@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 
 class InstallApp extends Controller
 {
-    const GRANT_ACCESS_SCOPE = 'read_checkouts,read_products,read_orders';
+    const GRANT_ACCESS_SCOPE = 'read_checkouts,read_orders,write_orders';
 
     /**
      * Handle the incoming request.
