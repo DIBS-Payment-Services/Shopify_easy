@@ -20,15 +20,18 @@ class Pay extends Controller
     private $easyService;
     private $easyApiService;
     private $checkoutObject;
+    private $logger;
 
     public function __construct(ShopifyApiService $service,
                                 Request $request, EasyService $easyService,
-            EasyApiService $easyApiService, CheckoutObject $checkoutObject) {
+            EasyApiService $easyApiService, CheckoutObject $checkoutObject, \Illuminate\Log\Logger $logger) {
         $this->shopifyAppService = $service;
         $this->request = $request;
         $this->easyService = $easyService;
         $this->easyApiService = $easyApiService;
         $this->checkoutObject = $checkoutObject;
+        $this->logger=  $logger;
+        
     }
 
     /**
@@ -54,6 +57,10 @@ class Pay extends Controller
       $accessToken = $settingsCollection->first()->access_token;
       $shopUrl = $settingsCollection->first()->shop_url;
       $checkout = $this->shopifyAppService->getCheckoutById($accessToken, $shopUrl, $request->get('x_reference'));
+      
+      
+      $this->logger->debug($checkout);
+      
       $this->checkoutObject->setCheckout($checkout);
       if(empty($checkout)) {
           throw new \Exception('Checkout with id: '. $request->get('x_reference') .' not found');

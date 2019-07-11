@@ -7,6 +7,8 @@ use App\Service\ShopifyApiService;
 use App\MerchantSettings;
 use App\Service\EasyApiService;
 
+use \Monolog\Logger;
+
 class Accept extends Controller
 {
     protected $easyApiService;
@@ -23,7 +25,7 @@ class Accept extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function __invoke(Request $request)
+    public function __invoke(Request $request, \Illuminate\Log\Logger $logger)
     {
         $requestInitialParams = json_decode(session('request_params'), true);
         $settingsCollection = MerchantSettings::getSettingsByShopUrl($requestInitialParams['shop']);

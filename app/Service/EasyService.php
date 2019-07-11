@@ -13,9 +13,11 @@ class EasyService implements EasyServiceInterface {
 
 
     private $request;
-
-    public function __construct(Request $request) {
+    private $logger;
+    
+    public function __construct(Request $request, \Illuminate\Log\Logger $logger) {
         $this->request = $request;
+        $this->logger = $logger;
     }
 
     public function generateRequestParams($settings, \App\CheckoutObject $checkoutObject): array {
@@ -29,6 +31,8 @@ class EasyService implements EasyServiceInterface {
                     'termsUrl' => $settings['terms_and_conditions_url'],
                 ),
             );
+            
+          
           $iso2countryCode = $checkoutObject->getIso2countryCode();
           $res = DirectoryCountry::getCountry($iso2countryCode)->first();
           $iso3countryCode = $res->iso3_code;
@@ -129,6 +133,9 @@ class EasyService implements EasyServiceInterface {
                      'url' => $reservationCreatedurl,
                      'authorization' => substr(str_shuffle(MD5(microtime())), 0, 10)]]
                  ];
+             
+             $this->logger->debug($data);
+             
     return $data;
     }
 
@@ -142,6 +149,8 @@ class EasyService implements EasyServiceInterface {
 
             // Products
             foreach ($checkoutObject->getLineItems() as $item) {
+               //$orderItem = new App\OrderItem($items, $checkoutObject->isTaxesInleded()); 
+                
                $unitPrice =  round($item['price'] / (1 + $this->getTaxRate($item)) * 100); //round($item['price'] * $item['quantity'] * 100);
                $taxRate =  round($this->getTaxRate($item) * 10000);
                $taxAmount = round($this->getTaxPrice($item) * 100);
