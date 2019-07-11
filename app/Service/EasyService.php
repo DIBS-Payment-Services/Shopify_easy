@@ -31,8 +31,6 @@ class EasyService implements EasyServiceInterface {
                     'termsUrl' => $settings['terms_and_conditions_url'],
                 ),
             );
-            
-          
           $iso2countryCode = $checkoutObject->getIso2countryCode();
           $res = DirectoryCountry::getCountry($iso2countryCode)->first();
           $iso3countryCode = $res->iso3_code;
@@ -149,13 +147,19 @@ class EasyService implements EasyServiceInterface {
 
             // Products
             foreach ($checkoutObject->getLineItems() as $item) {
-               //$orderItem = new App\OrderItem($items, $checkoutObject->isTaxesInleded()); 
-                
-               $unitPrice =  round($item['price'] / (1 + $this->getTaxRate($item)) * 100); //round($item['price'] * $item['quantity'] * 100);
-               $taxRate =  round($this->getTaxRate($item) * 10000);
-               $taxAmount = round($this->getTaxPrice($item) * 100);
-               $grossTotalAmount = round($item['price'] * 100) * $item['quantity'];
-               $netTotalAmount =  round($item['price'] *  $item['quantity'] / (1 + $this->getTaxRate($item)) * 100);
+               if($checkoutObject->isTaxesInleded()) {
+                    $unitPrice =  round($item['price'] / (1 + $this->getTaxRate($item)) * 100);
+                    $taxRate =  round($this->getTaxRate($item) * 10000);
+                    $taxAmount = round($this->getTaxPrice($item) * 100);
+                    $grossTotalAmount = round($item['price'] * 100) * $item['quantity'];
+                    $netTotalAmount =  round($item['price'] *  $item['quantity'] / (1 + $this->getTaxRate($item)) * 100);
+               } else {
+                    $unitPrice =  round($item['price'] * 100);
+                    $taxRate =  round($this->getTaxRate($item) * 10000);
+                    $taxAmount = round($this->getTaxPrice($item) * 100);
+                    $grossTotalAmount = round(($item['price'] + $item['price']*$this->getTaxRate($item)) * 100) * $item['quantity'];
+                    $netTotalAmount =  round($item['price'] *  $item['quantity'] * 100);
+               }
                $items[] = array(
                     'reference' => $item['product_id'],
                     'name' => str_replace(array('\'', '&'), '', $item['title']),
@@ -167,6 +171,7 @@ class EasyService implements EasyServiceInterface {
                     'grossTotalAmount' => $grossTotalAmount,
                     'netTotalAmount' => $netTotalAmount);
             }
+
             //Shipping
             if($shippingLine = $this->getShippingLine($checkoutObject)) { 
                 $items[] = $shippingLine; 
@@ -176,19 +181,26 @@ class EasyService implements EasyServiceInterface {
             if($this->getDiscountAmount($checkoutObject) > 0) {
                 $items[] = $this->discountRow($this->getDiscountAmount($checkoutObject));
             }
-
             return $items;
     }
 
     public function getShippingLine(\App\CheckoutObject $checkoutObject) {
         $shipping = [];
         if(!empty(($checkoutObject->getShippingLines()))) {
-            $current = current($checkoutObject->getShippingLines());
-            $unitPrice = round($current['price'] / (1 + $this->getTaxRate($current)) * 100);  //round($current['price'] * 100);
-            $taxRate =  round($this->getTaxRate($current) * 10000);
-            $taxAmount = round($this->getTaxPrice($current) * 100);
-            $grossTotalAmount = round($current['price'] * 100);
-            $netTotalAmount =  round($current['price'] / (1 + $this->getTaxRate($current)) * 100);
+               $current = current($checkoutObject->getShippingLines());
+            if($checkoutObject->isTaxesInleded()) {
+                $unitPrice = round($current['price'] / (1 + $this->getTaxRate($current)) * 100);
+                $taxRate =  round($this->getTaxRate($current) * 10000);
+                $taxAmount = round($this->getTaxPrice($current) * 100);
+                $grossTotalAmount = round($current['price'] * 100);
+                $netTotalAmount =  round($current['price'] / (1 + $this->getTaxRate($current)) * 100);
+            } else {
+                 $unitPrice =  round($current['price'] * 100);
+                 $taxRate =  round($this->getTaxRate($current) * 10000);
+                 $taxAmount = round($this->getTaxPrice($current) * 100);
+                 $grossTotalAmount = round(($current['price'] + $current['price']*$this->getTaxRate($current)) * 100);
+                 $netTotalAmount =  round($current['price'] *   100);
+            }
             $shippingLine =  [
                     'reference' => $current['id'],
                     'name' => str_replace(array('\'', '&'), '', $current['title']),
