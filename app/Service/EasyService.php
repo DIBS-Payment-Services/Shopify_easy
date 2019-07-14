@@ -134,7 +134,7 @@ class EasyService implements EasyServiceInterface {
              
              $this->logger->debug($data);
              
-    return $data;
+             return $data;
     }
 
    /**
@@ -154,11 +154,21 @@ class EasyService implements EasyServiceInterface {
                     $grossTotalAmount = round($item['price'] * 100) * $item['quantity'];
                     $netTotalAmount =  round($item['price'] *  $item['quantity'] / (1 + $this->getTaxRate($item)) * 100);
                } else {
+                    
+                    /*
                     $unitPrice =  round($item['price'] * 100);
                     $taxRate =  round($this->getTaxRate($item) * 10000);
                     $taxAmount = round($this->getTaxPrice($item) * 100);
-                    $grossTotalAmount = round(($item['price'] + $item['price']*$this->getTaxRate($item)) * 100) * $item['quantity'];
+                    $grossTotalAmount = round(($item['price'] + $this->getTaxPrice($item)) * 100) * $item['quantity'];
                     $netTotalAmount =  round($item['price'] *  $item['quantity'] * 100);
+                    */
+                    
+                    $unitPrice =  round($item['price'] * 100);
+                    $taxRate =  0;
+                    $taxAmount = 0;
+                    $grossTotalAmount = round(($item['price'] * 100)) * $item['quantity'];
+                    $netTotalAmount =  round($item['price'] *  $item['quantity'] * 100);
+                    
                }
                $items[] = array(
                     'reference' => $item['product_id'],
@@ -181,6 +191,11 @@ class EasyService implements EasyServiceInterface {
             if($this->getDiscountAmount($checkoutObject) > 0) {
                 $items[] = $this->discountRow($this->getDiscountAmount($checkoutObject));
             }
+            
+            if(!$checkoutObject->isTaxesInleded()) {
+                 $items[] = $this->taxRow($checkoutObject->getTotalTax());
+            }
+            
             return $items;
     }
 
@@ -195,11 +210,23 @@ class EasyService implements EasyServiceInterface {
                 $grossTotalAmount = round($current['price'] * 100);
                 $netTotalAmount =  round($current['price'] / (1 + $this->getTaxRate($current)) * 100);
             } else {
+                 
+                 /*
                  $unitPrice =  round($current['price'] * 100);
                  $taxRate =  round($this->getTaxRate($current) * 10000);
                  $taxAmount = round($this->getTaxPrice($current) * 100);
-                 $grossTotalAmount = round(($current['price'] + $current['price']*$this->getTaxRate($current)) * 100);
+                 $grossTotalAmount = round(($current['price'] + $this->getTaxPrice($current)) * 100);
                  $netTotalAmount =  round($current['price'] *   100);
+                 */
+                
+                 $unitPrice = round($current['price'] * 100);
+                 $taxRate =  0;
+                 $taxAmount = 0;
+                 $grossTotalAmount = round(($current['price'] ) * 100);
+                 $netTotalAmount =  round($current['price'] *  100);
+      
+                 
+                 
             }
             $shippingLine =  [
                     'reference' => $current['id'],
@@ -256,6 +283,21 @@ class EasyService implements EasyServiceInterface {
                 'netTotalAmount' => -round($amount * 100)];
 
     }
+    
+    protected function taxRow($amount) {
+        return [
+                'reference' => 'Tax',
+                'name' => str_replace(array('\'', '&'), '', 'Tax'),
+                'quantity' => 1,
+                'unit' => 'pcs',
+                'unitPrice' => round($amount * 100),
+                'taxRate' => 0,
+                'taxAmount' => 0,
+                'grossTotalAmount' => round($amount * 100),
+                'netTotalAmount' => round($amount * 100)];
+
+    }
+    
 
     public function getFakeOrderRow($amount) {
          return [

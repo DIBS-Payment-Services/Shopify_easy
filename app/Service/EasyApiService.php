@@ -8,72 +8,102 @@ namespace App\Service;
  * @author mabe
  */
 class EasyApiService implements EasyApiServiceInterface{
+    
+    const ENDPOINT_TEST = 'https://test.api.dibspayment.eu/v1/payments/';
+    const ENDPOINT_LIVE = 'https://api.dibspayment.eu/v1/payments/';
+    const ENV_LIVE = 'live';
+    const ENV_TEST = 'test';
+    
+    private $client;
+    private $env;
+    
+    public function __construct(\App\Service\Api\Client $client) {
+      $this->client = $client;
+      $this->client->setHeader('Content-Type', 'text/json');
+      $this->client->setHeader('Accept', 'test/json');
+      $this->setEnv(self::ENV_LIVE);
+    }
 
-    const PAYMENT_API_TEST_URL = 'https://test.api.dibspayment.eu/v1/payments';
-    const PAYMENT_API_URL = 'https://api.dibspayment.eu/v1/payments';
-    const GET_PAYMENT_DETAILS_URL_PREFIX = 'https://api.dibspayment.eu/v1/payments/';
-    const GET_PAYMENT_DETAILS_URL_TEST_PREFIX = 'https://test.api.dibspayment.eu/v1/payments/';
-    const CHARGE_PAYMENT_URL_PREFIX  = 'https://api.dibspayment.eu/v1/payments/';
-    const CHARGE_PAYMENT_URL_TEST_PREFIX  = 'https://test.api.dibspayment.eu/v1/payments/';
-
-    public $curl;
-
-    public function __construct() {
-      $curl = new \Curl\Curl();
-      $curl->setHeader('Content-Type', 'text/json');
-      $curl->setHeader('Accept', 'test/json');
-      $this->curl = $curl;
+    public function setEnv($env = self::ENV_LIVE) {
+        $this->env = $env;
+    }
+    
+    public function getEnv() {
+        return $this->env;
     }
 
     public function setAuthorizationKey($key) {
-      $this->curl->setHeader('Authorization', str_replace('-', '', trim($key)));
+      $this->client->setHeader('Authorization', str_replace('-', '', trim($key)));
     }
 
-    public function createPayment($url, $data) {
-      $this->curl->setHeader('commercePlatformTag:', 'easy_shopify_inject');
-      $this->curl->post($url, $data);
-      if($this->curl->isSuccess()) {
-          return $this->curl->getResponse();
-      } else {
-          throw new \App\Exceptions\EasyException($this->curl->getResponse(), $this->curl->getHttpStatus());
-      }
-      
+    public function createPayment($data) {
+      $this->client->setHeader('commercePlatformTag:', 'easy_shopify_inject');
+      $url = $this->getCreatePaymentUrl();  
+      $this->client->post($url, $data);
+      return $this->handleResponse($this->client);
     }
 
-    public function getPayment($url) {
-      $this->curl->get($url);
-      if($this->curl->isSuccess()) {
-          return $this->curl->getResponse();
-      } else {
-          error_log('Getting payment Error');
-          throw new \App\Exceptions\EasyException($this->curl->getResponse());
-      }
+    public function getPayment($paymentId) {
+      $url = $this->getGetPaymentUrl($paymentId); 
+      $this->client->get($url);
+      return $this->handleResponse($this->client);
     }
 
-   public function updateReference($url, $data) {
-      $this->curl->put($url, $data, true);
-      if($this->curl->isSuccess()) {
-           error_log('reference updated');
-          return $this->curl->getResponse();
-      } else {
-          throw new \App\Exceptions\EasyException($this->curl->getResponse());
-      }
+   public function updateReference($paymentId, $data) {
+      $url = $this->getUpdateReferenceUrl($paymentId); 
+      $this->client->put($url, $data, true);
+      $this->handleResponse($this->client);
     }
 
-    public function chargePayment($url, $data) {
-      $this->curl->post($url, $data);
-      if($this->curl->isSuccess()) {
-          error_log('transaction charged');
-          return $this->curl->getResponse();
-      } else {
-          error_log('transaction charge failed');
-          error_log($this->curl->getResponse());
-          throw new \App\Exceptions\EasyException($this->curl->getResponse(), $this->curl->getHttpStatus());
-      }
+    public function chargePayment($paymentId, $data) {
+      $url = $this->getChargePaymentUrl($paymentId); 
+      error_log($url);
+      $this->client->post($url, $data);
+      $this->handleResponse($this->client);
     }
 
     public function refundPayment() {
-        
+        // todo
+    }
+
+    protected function handleResponse(\App\Service\Api\Client $client) {
+      if($client->isSuccess()) {
+          return $client->getResponse();
+      } else {
+          throw new \App\Exceptions\EasyException($client->getResponse(), $client->getHttpStatus());
+      }
+    }
+
+    protected function getCreatePaymentUrl() {
+        if($this->getEnv() == self::ENV_LIVE) {
+            return self::ENDPOINT_LIVE;
+        } else{
+            return self::ENDPOINT_TEST;
+        }
+    }
+
+    protected function getGetPaymentUrl($paymentId) {
+        if($this->getEnv() == self::ENV_LIVE) {
+            return self::ENDPOINT_LIVE . $paymentId;
+        } else{
+            return self::ENDPOINT_TEST . $paymentId;
+        }
+    }
+
+    public function getUpdateReferenceUrl($paymentId) {
+        if($this->getEnv() == self::ENV_LIVE) {
+            return self::ENDPOINT_LIVE . $paymentId .'/referenceinformation';
+        } else{
+            return self::ENDPOINT_TEST . $paymentId .'/referenceinformation';
+        }
+    }
+
+    public function getChargePaymentUrl($paymentId) {
+        if($this->getEnv() == self::ENV_LIVE) {
+            return self::ENDPOINT_LIVE . $paymentId . '/charges';
+        } else{
+            return self::ENDPOINT_TEST . $paymentId . '/charges';
+        }
     }
 
 }

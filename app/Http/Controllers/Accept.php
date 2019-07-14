@@ -25,50 +25,59 @@ class Accept extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function __invoke(Request $request, \Illuminate\Log\Logger $logger)
+    public function __invoke(Request $request, \Illuminate\Log\Logger $logger, 
+                             \App\Service\Api\Client $client, 
+                             \App\Exceptions\EasyApiExceptionHandler $eh,
+                             \App\ShopifyReturnParams $shopifyReturnParams)
     {
-        $requestInitialParams = json_decode(session('request_params'), true);
-        $settingsCollection = MerchantSettings::getSettingsByShopUrl($requestInitialParams['shop']);
-        if('true' ==$requestInitialParams['x_test']) {
-            $key = ShopifyApiService::decryptKey($settingsCollection->first()->easy_test_secret_key);
-            $url = ShopifyApiService::GET_PAYMENT_DETAILS_URL_TEST_PREFIX . $requestInitialParams['paymentId'];
-        } else {
-            $key = ShopifyApiService::decryptKey($settingsCollection->first()->easy_secret_key);
-            $url = ShopifyApiService::GET_PAYMENT_DETAILS_URL_PREFIX . $requestInitialParams['paymentId'];
-        }
-        $this->easyApiService->setAuthorizationKey($key);
-        $paymentDetailsJson = $this->easyApiService->getPayment($url);
-        $paymentDetailsList = json_decode($paymentDetailsJson);
-        if(!empty($paymentDetailsList->payment->summary->reservedAmount)) {
-            $params['url'] = $request->get('x_url_complete'); 
+        try{
             $requestInitialParams = json_decode(session('request_params'), true);
-            $params['params'] = [ 'x_amount'            => $requestInitialParams['x_amount'],	
-                                  'x_currency'          => $requestInitialParams['x_currency'],	
-                                  'x_gateway_reference' => $requestInitialParams['paymentId'],	
-                                  'x_reference'         => $requestInitialParams['x_reference'],	
-                                  'x_result'            => 'completed',	
-                                  'x_timestamp'         => date("Y-m-d\TH:i:s\Z"),
-                                  'x_transaction_type'  => 'authorization',
-                                  'x_account_id'        => $requestInitialParams['x_account_id']];
-                
-            if($requestInitialParams['x_test']) {
-                $params['params']['x_test'] = 'true';
+            $settingsCollection = MerchantSettings::getSettingsByShopUrl($requestInitialParams['shop']);
+            if($requestInitialParams['x_test'] == 'true') {
+                $key = ShopifyApiService::decryptKey($settingsCollection->first()->easy_test_secret_key);
+                $env = EasyApiService::ENV_TEST;
+                        
+            } else {
+                $env = EasyApiService::ENV_LIVE;
+                $key = ShopifyApiService::decryptKey($settingsCollection->first()->easy_secret_key);
             }
             
-            if(isset($requestInitialParams['x_account_id'])) {
-                 $params['params']['x_account_id'] = $requestInitialParams['x_account_id'];
-            } 
+            $this->easyApiService->setAuthorizationKey($key);
+            $this->easyApiService->setEnv($env);
+            $paymentDetailsJson = $this->easyApiService->getPayment($requestInitialParams['paymentId']);
             
-            $params['params']['x_signature'] = $this->shopifyApiService->calculateSignature($params['params'], $requestInitialParams['gateway_password']);
-            return view('easy-accept', $params);
-        } else {
-            return redirect($requestInitialParams['x_url_cancel']);
+            $paymentDetailsList = json_decode($paymentDetailsJson);
+            if(!empty($paymentDetailsList->payment->summary->reservedAmount)) {
+                $params['url'] = $request->get('x_url_complete'); 
+
+                $requestInitialParams = json_decode(session('request_params'), true);
+                $shopifyReturnParams->setX_Amount($requestInitialParams['x_amount']);
+                $shopifyReturnParams->setX_Currency( $requestInitialParams['x_currency']);
+                $shopifyReturnParams->setX_GatewayReference($requestInitialParams['paymentId']);
+                $shopifyReturnParams->setX_Reference($requestInitialParams['x_reference']);
+                $shopifyReturnParams->setX_Result('completed');
+                $shopifyReturnParams->setX_Timestamp(date("Y-m-d\TH:i:s\Z"));
+                $shopifyReturnParams->setX_TransactionType('authorization');
+                $shopifyReturnParams->setX_AccountId($requestInitialParams['x_account_id']);
+
+                if($requestInitialParams['x_test'] == 'true') {
+                    $shopifyReturnParams->setX_Test();
+                }
+                $pass = $requestInitialParams['gateway_password'];
+                $signature = $this->shopifyApiService->calculateSignature($shopifyReturnParams->getParams(), $pass);
+                $shopifyReturnParams->setX_Signature($signature);
+                $params['params'] = $shopifyReturnParams->getParams();
+                return view('easy-accept', $params);
+
+
+            } else {
+                return redirect($requestInitialParams['x_url_cancel']);
+            }
+        } catch (\App\Exceptions\EasyException $e) {
+              $eh->handle($e, $request->all());
+        } catch(\Exception $e) {
+              return response('HTTP/1.0 500 Internal Server Error', 500);
         }
     }
-
-    protected function makeCallback() 
-    {
-       $params = json_decode(session('request_params'), true);
-       $this->shopifyApiService->paymentCallback($params['x_url_callback'], $params);
-    }
+  
 }

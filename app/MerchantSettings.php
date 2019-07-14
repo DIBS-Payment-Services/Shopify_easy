@@ -53,5 +53,5 @@ class MerchantSettings extends Model
         error_log($params['shop_id']);
         self::query()->updateOrCreate(['shop_id' => $params['shop_id']], $params);
     }
-
+   
 }

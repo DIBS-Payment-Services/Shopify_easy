@@ -94,5 +94,9 @@ class CheckoutObject {
     public function isTaxesInleded() {
         return $this->checkout['taxes_included'];
     }
+    
+    public function getTotalTax() {
+        return $this->checkout['total_tax'];
+    }
 
 }

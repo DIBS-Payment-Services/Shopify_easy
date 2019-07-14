@@ -9,10 +9,20 @@ use App\MerchantSettings;
 
 class Callback extends Controller
 {
-    protected $shopifyApiService;
 
-    public function __construct(ShopifyApiService $service) {
+    /**
+     * @var \Illuminate\Log\Logger
+     */
+    private $logger;
+    protected $shopifyApiService;
+    private $shopifyApiExceptionHandler;
+
+    public function __construct(ShopifyApiService $service, 
+                                \App\Exceptions\ShopifyApiExceptionHandler $ehsh, 
+                                \Illuminate\Log\Logger $logger) {
         $this->shopifyApiService = $service;
+        $this->shopifyApiExceptionHandler = $ehsh;
+        $this->logger = $logger;
     }
 
     /**
@@ -21,34 +31,33 @@ class Callback extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function __invoke(Request $request)
+    public function __invoke(Request $request, \App\ShopifyReturnParams $shopifyReturnParams)
     {
         try{
-            $request->get('param1');
-            $url = $request->get('callback_url');
             $data = $request->get('data');
-            $params = ['x_account_id'        => $request->get('merchantId'),
-                        'x_amount'            => $data['amount']['amount'] / 100,
-                        'x_currency'          => $data['amount']['currency'],
-                        'x_gateway_reference' => $data['paymentId'],
-                        'x_reference'         => $request->get('x_reference'),
-                        'x_result'            => 'completed',
-                        'x_timestamp'         => date("Y-m-d\TH:i:s\Z"),
-                        'x_test'              => 'true',
-                        'x_transaction_type'  => 'authorization'];
+            $shopifyReturnParams->setX_AccountId($request->get('merchantId'));
+            $shopifyReturnParams->setX_Amount($data['amount']['amount'] / 100);
+            $shopifyReturnParams->setX_Currency($data['amount']['currency']);
+            $shopifyReturnParams->setX_GatewayReference($data['paymentId']);
+            $shopifyReturnParams->setX_Reference($request->get('x_reference'));
+            $shopifyReturnParams->setX_Result('completed');
+            $shopifyReturnParams->setX_Timestamp(date("Y-m-d\TH:i:s\Z"));
+            $shopifyReturnParams->setX_TransactionType('authorization');
             
-            error_log(serialize($request->all()));
-            $paymentDetailsCollection = PaymentDetails::getDetailsByCheckouId($request->get('x_reference'));
-            $shopUrl = $paymentDetailsCollection->first()->shop_url;
-            $merchantSettingsCollection = MerchantSettings::getSettingsByShopUrl($shopUrl);
-            $gatewayPassword = $merchantSettingsCollection->first()->gateway_password;
-            $params1 = $params;
-            $params['x_signature'] = $this->shopifyApiService->calculateSignature($params1, $gatewayPassword);
-            $this->shopifyApiService->paymentCallback($url, $params);
-            header("HTTP/1.1 200 OK");
-        } catch( \Exception $e) {
-            error_log($e->getMessage());
-            header("HTTP/1.1 500 Callback filed");
+            $pd = PaymentDetails::getDetailsByCheckouId($request->get('x_reference'));
+            $ms = MerchantSettings::getSettingsByShopUrl($pd->first()->shop_url);
+            if($pd->first()->test == 1) {
+                $shopifyReturnParams->setX_Test();
+            }
+            $signature = $this->shopifyApiService->calculateSignature($shopifyReturnParams->getParams(), $ms->first()->gateway_password);
+            $shopifyReturnParams->setX_Signature($signature);
+            $this->shopifyApiService->paymentCallback($request->get('callback_url'), $shopifyReturnParams->getParams());
+        }catch(\App\Exceptions\ShopifyApiException $e) {
+            $this->shopifyApiExceptionHandler->handle($e);
+            return response('HTTP/1.0 500 Internal Server Error', 500);
+        } 
+        catch( \Exception $e) {
+            return response('HTTP/1.0 500 Internal Server Error', 500);
         }
     }
 }

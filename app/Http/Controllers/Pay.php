@@ -13,7 +13,6 @@ use App\CheckoutObject;
 class Pay extends Controller
 {
     protected $shopify_access_token;
-
     protected $shop_url;
     private $shopifyAppService;
     private $request;
@@ -21,16 +20,23 @@ class Pay extends Controller
     private $easyApiService;
     private $checkoutObject;
     private $logger;
-
+    private $easyApiExceptionHandler;
+    private $shopifyApiExceptionHandler;
+    
     public function __construct(ShopifyApiService $service,
                                 Request $request, EasyService $easyService,
-            EasyApiService $easyApiService, CheckoutObject $checkoutObject, \Illuminate\Log\Logger $logger) {
+            EasyApiService $easyApiService, CheckoutObject $checkoutObject, 
+            \Illuminate\Log\Logger $logger, \App\Exceptions\EasyApiExceptionHandler $eh,
+            \App\Exceptions\ShopifyApiExceptionHandler $ehsh
+            ) {
         $this->shopifyAppService = $service;
         $this->request = $request;
         $this->easyService = $easyService;
         $this->easyApiService = $easyApiService;
         $this->checkoutObject = $checkoutObject;
         $this->logger=  $logger;
+        $this->easyApiExceptionHandler = $eh;
+        $this->shopifyApiExceptionHandler = $ehsh;
         
     }
 
@@ -42,13 +48,15 @@ class Pay extends Controller
      */
     public function __invoke(Request $request)
     {
-       try {
+        try {
             return $this->startPayment($request);
         }catch(\App\Exceptions\EasyException $e) {
-           error_log($e->getMessage());
-        } 
+           $this->easyApiExceptionHandler->handle($e, $request->all());
+        }catch(\App\Exceptions\ShopifyApiException $e ) {
+           $this->shopifyApiExceptionHandler->handle($e);
+        }
         catch(\Exception $e) {
-           error_log($e->getMessage());
+           $this->logger->error($e->getMessage());
        }
     }
 
@@ -57,27 +65,24 @@ class Pay extends Controller
       $accessToken = $settingsCollection->first()->access_token;
       $shopUrl = $settingsCollection->first()->shop_url;
       $checkout = $this->shopifyAppService->getCheckoutById($accessToken, $shopUrl, $request->get('x_reference'));
-      
-      
-      $this->logger->debug($checkout);
-      
       $this->checkoutObject->setCheckout($checkout);
       if(empty($checkout)) {
           throw new \Exception('Checkout with id: '. $request->get('x_reference') .' not found');
       }
-      $test = 0;
-      if('true' == $request->get('x_test')) {
+      
+      if($request->get('x_test') == 'true') {
         $key = ShopifyApiService::decryptKey($settingsCollection->first()->easy_test_secret_key);
-        $url = EasyApiService::PAYMENT_API_TEST_URL;
-        $test = 1;
+        $env = EasyApiService::ENV_TEST;
       } else {
         $key = ShopifyApiService::decryptKey($settingsCollection->first()->easy_secret_key);
-        $url = EasyApiService::PAYMENT_API_URL;
+        $env = EasyApiService::ENV_LIVE;
       }
       $settings = current($settingsCollection->toArray());
       $data = json_encode($this->easyService->generateRequestParams($settings, $this->checkoutObject));
       $this->easyApiService->setAuthorizationKey($key);
-      if($result = $this->easyApiService->createPayment($url, $data)) {
+      $this->easyApiService->setEnv($env);
+      
+      if($result = $this->easyApiService->createPayment($data)) {
            $result_decoded = json_decode($result);
            $requestParams = $request->all();
            $requestParams['gateway_password'] = $settingsCollection->first()->gateway_password;
@@ -87,7 +92,7 @@ class Pay extends Controller
            $params = ['checkout_id' => $checkout['id'],
                       'dibs_paymentid' => $result_decoded->paymentId, 
                       'shop_url' => $settingsCollection->first()->shop_url,
-                      'test' => $test];
+                      'test' => $request->get('x_test') == 'true' ? 1 : 0];
            
            PaymentDetails::addOrUpdateDetails($params);
            session(['request_params' => json_encode($requestParams)]);
