@@ -11,7 +11,6 @@ class ShopifyApiService  implements ShopifyApiServiceInterface{
     const GET_PAYMENT_DETAILS_URL_PREFIX = 'https://api.dibspayment.eu/v1/payments/';
     const GET_PAYMENT_DETAILS_URL_TEST_PREFIX = 'https://test.api.dibspayment.eu/v1/payments/';
 
-    private $accessToken;
     private $client;
     public function __construct(\App\Service\Api\Client $client) {
       $this->client = $client;
@@ -31,15 +30,7 @@ class ShopifyApiService  implements ShopifyApiServiceInterface{
                   'code' => $request->get('code')];
         $url = "https://$shop" . self::OAUTH_ACCESS_TOKEN_URL;
         $this->client->post($url, $fields);
-        
-        if($this->client->isSuccess()) {
-           $responseObj = json_decode($this->client->getResponse());
-           $this->accessToken = $responseObj->access_token;
-           error_log($this->client->getResponse());
-           return $this->client->getResponse();
-        } else {
-           error_log($this->client->getResponse());
-        }
+        return $this->handleResponse($this->client);
     }
 
     /**
@@ -49,15 +40,10 @@ class ShopifyApiService  implements ShopifyApiServiceInterface{
      * @return string|null
      */
     public function getShopInfo($acessToken, $shopUrl) {
-        $curl = new \Curl\Curl();
-        $curl->setHeader('X-Shopify-Access-Token', $acessToken);
+        $this->client->setHeader('X-Shopify-Access-Token', $acessToken);
         $url = $this->getShopUrl($shopUrl);
-        $curl->get($url);
-        if($curl->isSuccess()) {
-            return $curl->getResponse();
-        } else {
-            error_log($curl->getResponse());
-        }
+        $this->client->get($url);
+        return $this->handleResponse($this->client);
     }
 
     /**
@@ -134,22 +120,26 @@ class ShopifyApiService  implements ShopifyApiServiceInterface{
    }
 
    private function getCheckoutsUrl($shopUrl) {
-      return str_replace('api_version', env('SHOPIFY_API_VERSION') ,'https://' . $shopUrl . self::API_CHECKOUTS_URL);
+      return str_replace('api_version', env('SHOPIFY_API_VERSION') ,
+              'https://' . $shopUrl . self::API_CHECKOUTS_URL);
       
    }
 
    private function getShopUrl($shopUrl) {
-      return str_replace('api_version', env('SHOPIFY_API_VERSION') ,'https://' . $shopUrl . self::API_SHOP_URL);
+      return str_replace('api_version', env('SHOPIFY_API_VERSION') ,
+              'https://' . $shopUrl . self::API_SHOP_URL);
       
    }
-   
+
    private function getOrderUrl($shopUrl, $order_id) {
-      return str_replace(['api_version', 'order_id'], [env('SHOPIFY_API_VERSION'), $order_id] ,'https://' . $shopUrl . self::API_ORDER_URL);
+      return str_replace(['api_version', 'order_id'], [env('SHOPIFY_API_VERSION'), $order_id] ,
+              'https://' . $shopUrl . self::API_ORDER_URL);
       
    }
 
    private function getOrderCheckoutUrl($shopUrl) {
-       return str_replace('api_version', env('SHOPIFY_API_VERSION') ,'https://' . $shopUrl . '/admin/api/api_version/orders.json' );
+       return str_replace('api_version', env('SHOPIFY_API_VERSION') ,
+              'https://' . $shopUrl . '/admin/api/api_version/orders.json' );
    }
 
    protected function handleResponse(\App\Service\Api\Client $client) {
