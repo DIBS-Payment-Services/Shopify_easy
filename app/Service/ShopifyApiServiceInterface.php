@@ -14,5 +14,7 @@ interface ShopifyApiServiceInterface {
     
     public function getCheckoutById($acessToken, $shop ,$checkoutId);
     
-    public function paymentCallback($url, $params); 
+    public function getOrder($acessToken, $shopUrl, $orderId);
+    
+    public function paymentCallback($url, $params, $type = null);
 }
