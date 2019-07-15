@@ -37,7 +37,7 @@ class AuthApp extends Controller
                             env('SHOPIFY_API_SECRET')),
                             'shop_id' => $shopInfo['shop']['id'],
                             'shop_name' =>  urlencode($shopInfo['shop']['name'])];
-                
+                $this->shopifyAppService->registerOrederCreatedHook($result_array['access_token'], $request->get('shop'));
                 MerchantSettings::addOrUpdateShop($params);
                 return redirect('form');
             }

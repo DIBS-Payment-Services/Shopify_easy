@@ -111,6 +111,20 @@ class ShopifyApiService  implements ShopifyApiServiceInterface{
         return hash_hmac('sha256', $message, $gatewayPassword);
    }
 
+   public function registerOrederCreatedHook($acessToken, $shopUrl) {
+       $url = $this->getRegisterOrderWebhookUrl($shopUrl);
+       $this->client->setHeader('X-Shopify-Access-Token', $acessToken);
+       $appUrl = env('SHOPIFY_APP_URL');
+       $address = 'https://' . $appUrl . '/order_created';
+       $params = ['webhook'=>['topic'=>'orders/create', 'address' => $address, 'format' => 'json']];
+       try{
+        $this->client->post($url, $params);
+        $resp = $this->handleResponse($this->client);
+       } catch(\App\Exceptions\ShopifyApiException $e) {
+
+       }
+   }
+
    public static function encryptKey($data) {
         return openssl_encrypt($data, 'AES-128-ECB', env('EASY_KEY_SALT'));
    }
@@ -140,6 +154,11 @@ class ShopifyApiService  implements ShopifyApiServiceInterface{
    private function getOrderCheckoutUrl($shopUrl) {
        return str_replace('api_version', env('SHOPIFY_API_VERSION') ,
               'https://' . $shopUrl . '/admin/api/api_version/orders.json' );
+   }
+
+   private function getRegisterOrderWebhookUrl($shopUrl) {
+       return str_replace('api_version', env('SHOPIFY_API_VERSION') ,
+              'https://' . $shopUrl . '/admin/api/2019-04/webhooks.json' );
    }
 
    protected function handleResponse(\App\Service\Api\Client $client) {
