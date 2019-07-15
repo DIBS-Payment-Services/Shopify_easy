@@ -19,7 +19,7 @@ class EasyApiExceptionHandler {
     public function handle(\App\Exceptions\EasyException $e, array $add = null) {
         
         $prefixMessage = 'Exception call to Easy Api. ';
-        
+        $message = '';
         switch($e->getCode()) {
                 case 400:
                    $message = 'Bad request: ' . $e->getMessage();

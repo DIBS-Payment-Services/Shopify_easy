@@ -99,8 +99,8 @@ class Capture extends Controller
         header("Content-Encoding: none");
         header("Content-Length: {$size}");
         header("Connection: close");
+        if( ob_get_level() > 0 ) ob_flush();
         ob_end_flush();
-        ob_flush();
         flush();
    }
 }
