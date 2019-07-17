@@ -70,6 +70,8 @@ class EasyService implements EasyServiceInterface {
           if(!empty($phone)) {
                $phonePrefix = substr($phone, 0, 3);
                $number = substr($phone, 3);
+               $firstName = ($checkoutObject->getCustomerFirstName()) ? $checkoutObject->getCustomerFirstName() : 'FirstName';
+               $lastName = ($checkoutObject->getcustomerLastName()) ? $checkoutObject->getcustomerLastName() : 'LastName';
                $data['checkout']['consumer'] = array(
                             'email' => $checkoutObject->getCustomerEmail(),
                             "shippingAddress" => array(
@@ -81,8 +83,8 @@ class EasyService implements EasyServiceInterface {
                               ),
                           'phoneNumber' => ['prefix' => $phonePrefix,   'number' => $number],
                           'privatePerson' => array(
-                                'firstName' => $checkoutObject->getCustomerFirstName(),
-                                'lastName' => $checkoutObject->getcustomerLastName(),
+                                'firstName' => $firstName,
+                                'lastName' => $lastName,
                          )
                  );
               $data['checkout']['merchantHandlesConsumerData'] = true;
