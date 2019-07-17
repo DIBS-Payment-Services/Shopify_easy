@@ -8,6 +8,7 @@ use App\MerchantSettings;
 use App\Service\EasyService;
 use App\Service\EasyApiService;
 use App\CheckoutObject;
+use App\PaymentDetails;
 
 class Capture extends Controller
 {
@@ -29,11 +30,11 @@ class Capture extends Controller
                              \App\Exceptions\Handler $handler)
     {
         try{
-             $settingsCollection = MerchantSettings::getSettingsByMerchantId($request->get('x_account_id'));
+             $paymentDetails = PaymentDetails::getDetailsByPaymentId($request->get('x_gateway_reference'));
+             $settingsCollection = MerchantSettings::getSettingsByShopUrl($paymentDetails->first()->shop_url);
              $gatewayPassword = $settingsCollection->first()->gateway_password;
              $params = $request->all();
              $secretKey = null;
-
              if($request->get('x_test')) {
                     $params['x_test'] = 'true';
                     $secretKey = ShopifyApiService::decryptKey($settingsCollection->first()->easy_test_secret_key);
@@ -44,41 +45,22 @@ class Capture extends Controller
                     $easyApiService->setEnv(EasyApiService::ENV_LIVE);
              }
              unset($params['x_signature']);
-             
              if($request->get('x_signature') != $shopifyApiService->calculateSignature($params, $gatewayPassword)) {
                 throw new \App\Exceptions\ShopifyApiException('Singnature is wrong while trying to capture');
              }
-            
              $orderJson = $shopifyApiService->getOrder($settingsCollection->first()->access_token, 
              $settingsCollection->first()->shop_url, $request->get('x_shopify_order_id'));
              $orderDecoded = json_decode($orderJson, true);
-             
              $checkoutObject->setCheckout($orderDecoded['order']);
-             
+             PaymentDetails::setCaptureRequestParams($orderDecoded['order']['checkout_id'], json_encode($request->all()));
              if(($request->get('x_amount') * 100) != $checkoutObject->getAmount()) {
                  throw new \App\Exceptions\ShopifyApiException('Only full amount capture is allowed');
              }
-          
+             $paramsRequestJson = json_encode($request->all());
              $data['amount'] = $checkoutObject->getAmount();
              $data['orderItems'] = $easyService->getRequestObjectItems($checkoutObject);
-             
              $easyApiService->setAuthorizationKey($secretKey);
              $easyApiService->chargePayment($request->get('x_gateway_reference'), json_encode($data));
-             $shopifyReturnParams->setX_GatewayReference($request->get('x_gateway_reference'));
-             $shopifyReturnParams->setX_Reference($request->get('x_reference'));
-             $shopifyReturnParams->setX_Result('completed');
-             $shopifyReturnParams->setX_Timestamp(date("Y-m-d\TH:i:s\Z"));
-             $shopifyReturnParams->setX_TransactionType('capture');
-             $shopifyReturnParams->setX_Message();
-             $pass = $settingsCollection->first()->gateway_password;
-             $shopifyReturnParams->setX_Signature($shopifyApiService->calculateSignature($shopifyReturnParams->getParams(),$pass));
-             
-             // wait 30 seconds untill capture processed in Shopify 
-             $this->flushHeader();
-             sleep(30);
-    
-             $shopifyApiService->paymentCallback($request->get('x_url_callback'), $shopifyReturnParams->getParams());
-             
          } catch(\App\Exceptions\ShopifyApiException $e) {
             $ehsh->handle($e, $request->all());
             return response('HTTP/1.0 500 Internal Server Error', 500);
@@ -91,16 +73,4 @@ class Capture extends Controller
             return response('HTTP/1.0 500 Internal Server Error', 500);
          }
     }
-
-    protected function flushHeader() {
-        ob_start();
-        echo "OK";
-        $size = ob_get_length();
-        header("Content-Encoding: none");
-        header("Content-Length: {$size}");
-        header("Connection: close");
-        if( ob_get_level() > 0 ) ob_flush();
-        ob_end_flush();
-        flush();
-   }
 }

@@ -19,9 +19,12 @@ Route::get('return', 'Accept');
 Route::get('/', 'Index@index');
 
 
+Route::get('test', 'Test');
+
+
 Route::post('capture', 'Capture');
 
-
+Route::post('charge_created', 'ChargeCreatedEasyHook');
 Route::post('order_created', 'OrderCreatedHook');
 Route::post('charge_created', 'ChargeCreatedEasyHook');
 

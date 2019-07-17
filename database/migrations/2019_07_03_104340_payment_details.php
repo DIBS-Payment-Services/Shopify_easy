@@ -18,11 +18,11 @@ class PaymentDetails extends Migration
          $table->string('checkout_id')->nullable();
          $table->string('dibs_paymentid')->nullable();
          $table->string('shop_url')->nullable();
-         
          $table->string('account_id')->nullable();
          $table->string('amount')->nullable();
          $table->string('currency')->nullable();
          $table->string('test',1)->nullable();
+         $table->text('capture_request_params')->nullable();
          $table->timestamps();
       });
     }
