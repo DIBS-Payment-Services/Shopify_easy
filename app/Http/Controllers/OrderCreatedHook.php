@@ -24,7 +24,8 @@ class OrderCreatedHook extends Controller{
     public function __invoke(EasyApiService $easyApiService, 
                              Request $request, 
                              \App\Exceptions\EasyApiExceptionHandler $eh,
-                             \App\Exceptions\Handler $handler)
+                             \App\Exceptions\Handler $handler,
+                             \Illuminate\Log\Logger $logger)
     {
         try{
             $collectionPaymentDetail = PaymentDetails::getDetailsByCheckouId($request->get('checkout_id'));
@@ -49,6 +50,7 @@ class OrderCreatedHook extends Controller{
         } 
         catch(\Exception $e) {
            $handler->report($e);
+           $logger->debug($request->all());
            return response('HTTP/1.0 500 Internal Server Error', 500);
         }
     }
