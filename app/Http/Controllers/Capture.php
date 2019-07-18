@@ -53,12 +53,14 @@ class Capture extends Controller
              $orderDecoded = json_decode($orderJson, true);
              $checkoutObject->setCheckout($orderDecoded['order']);
              PaymentDetails::setCaptureRequestParams($orderDecoded['order']['checkout_id'], json_encode($request->all()));
-             if(($request->get('x_amount') * 100) != $checkoutObject->getAmount()) {
-                 throw new \App\Exceptions\ShopifyApiException('Only full amount capture is allowed');
+             if(($request->get('x_amount') * 100) == $checkoutObject->getAmount()) {
+                 $data['amount'] = $checkoutObject->getAmount();
+                 $data['orderItems'] = $easyService->getRequestObjectItems($checkoutObject);
+             } else {
+                 $data['amount'] = $request->get('x_amount') * 100;
+                 $data['orderItems'][] = $easyService->getFakeOrderRow($request->get('x_amount'), 'captured-partially1');
              }
              $paramsRequestJson = json_encode($request->all());
-             $data['amount'] = $checkoutObject->getAmount();
-             $data['orderItems'] = $easyService->getRequestObjectItems($checkoutObject);
              $easyApiService->setAuthorizationKey($secretKey);
              $easyApiService->chargePayment($request->get('x_gateway_reference'), json_encode($data));
          } catch(\App\Exceptions\ShopifyApiException $e) {

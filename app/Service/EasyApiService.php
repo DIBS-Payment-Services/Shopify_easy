@@ -57,7 +57,6 @@ class EasyApiService implements EasyApiServiceInterface{
 
     public function chargePayment($paymentId, $data) {
       $url = $this->getChargePaymentUrl($paymentId); 
-      error_log($url);
       $this->client->post($url, $data);
       $this->handleResponse($this->client);
     }

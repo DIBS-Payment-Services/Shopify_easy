@@ -305,17 +305,17 @@ class EasyService implements EasyServiceInterface {
     }
     
 
-    public function getFakeOrderRow($amount) {
+    public function getFakeOrderRow($amount, $name) {
          return [
-                'reference' => 'product',
-                'name' => 'Product',
+                'reference' => md5($amount . $name),
+                'name' => $name,
                 'quantity' => 1,
                 'unit' => 'pcs',
-                'unitPrice' => $amount,
+                'unitPrice' => $amount * 100,
                 'taxRate' => 0,
                 'taxAmount' => 0,
-                'grossTotalAmount' =>$amount,
-                'netTotalAmount' => $amount];
+                'grossTotalAmount' =>$amount * 100,
+                'netTotalAmount' => $amount * 100];
 
     }
 

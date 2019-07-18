@@ -50,8 +50,7 @@ class MerchantSettings extends Model
 
     public static function addOrUpdateShop($params)
     {
-        error_log($params['shop_id']);
         self::query()->updateOrCreate(['shop_id' => $params['shop_id']], $params);
     }
-   
+
 }
