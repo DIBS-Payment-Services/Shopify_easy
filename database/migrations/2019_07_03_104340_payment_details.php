@@ -23,6 +23,7 @@ class PaymentDetails extends Migration
          $table->string('currency')->nullable();
          $table->string('test',1)->nullable();
          $table->text('capture_request_params')->nullable();
+         $table->text('create_payment_items_params')->nullable();
          $table->timestamps();
       });
     }

@@ -55,7 +55,7 @@ class Capture extends Controller
              PaymentDetails::setCaptureRequestParams($orderDecoded['order']['checkout_id'], json_encode($request->all()));
              if(($request->get('x_amount') * 100) == $checkoutObject->getAmount()) {
                  $data['amount'] = $checkoutObject->getAmount();
-                 $data['orderItems'] = $easyService->getRequestObjectItems($checkoutObject);
+                 $data['orderItems'] = json_decode($paymentDetails->first()->create_payment_items_params, true);
              } else {
                  $data['amount'] = $request->get('x_amount') * 100;
                  $data['orderItems'][] = $easyService->getFakeOrderRow($request->get('x_amount'), 'captured-partially1');

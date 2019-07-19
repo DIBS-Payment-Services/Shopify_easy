@@ -137,9 +137,7 @@ class EasyService implements EasyServiceInterface {
                      'url' => $chargeCreatedHookUrl,
                      'authorization' => substr(str_shuffle(MD5(microtime())), 0, 10)]]
                  ];
-             
              $this->logger->debug($data);
-             
              return $data;
     }
 

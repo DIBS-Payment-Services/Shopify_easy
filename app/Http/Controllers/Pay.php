@@ -88,10 +88,10 @@ class Pay extends Controller
         $env = EasyApiService::ENV_LIVE;
       }
       $settings = current($settingsCollection->toArray());
-      $data = json_encode($this->easyService->generateRequestParams($settings, $this->checkoutObject));
+      $createPaymentParams = $this->easyService->generateRequestParams($settings, $this->checkoutObject);
+      $data = json_encode($createPaymentParams);
       $this->easyApiService->setAuthorizationKey($key);
       $this->easyApiService->setEnv($env);
-      
       if($result = $this->easyApiService->createPayment($data)) {
            $result_decoded = json_decode($result);
            $requestParams = $request->all();
@@ -103,7 +103,7 @@ class Pay extends Controller
                       'dibs_paymentid' => $result_decoded->paymentId, 
                       'shop_url' => $settingsCollection->first()->shop_url,
                       'test' => $request->get('x_test') == 'true' ? 1 : 0];
-           
+           $params['create_payment_items_params'] = json_encode($createPaymentParams['order']['items']);
            PaymentDetails::addOrUpdateDetails($params);
            session(['request_params' => json_encode($requestParams)]);
            $redirectUrl = $result_decoded->hostedPaymentPageUrl . '&language=' . $settingsCollection->first()->language;
