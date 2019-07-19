@@ -34,7 +34,7 @@
           <div class="row">
             <div class="col-lg-8 col-12 col-sm-10 offset-lg-2 offset-sm-1">
               <h6>{{ $message }}</h6>
-              <a href="{{ $back_link }}">Back to shop</a>
+              <a href="{{ $back_link }}">< Back to shop</a>
             </div>
           </div>
         </div>

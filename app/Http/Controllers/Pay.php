@@ -51,24 +51,34 @@ class Pay extends Controller
         try {
             return $this->startPayment($request);
         }catch(\App\Exceptions\EasyException $e) {
-           $message  =$this->easyApiExceptionHandler->handle($e, $request->all());
-           return view('easy-pay-error', ['message' => $message, 'back_link' => $request->get('x_url_complete')]);
+           $message  = $this->easyApiExceptionHandler->handle($e, $request->all());
         }catch(\App\Exceptions\ShopifyApiException $e ) {
-           $this->shopifyApiExceptionHandler->handle($e);
+           $message = $this->shopifyApiExceptionHandler->handle($e);
         }
         catch(\Exception $e) {
+           $message = 'Error occured';
            $this->logger->error($e->getMessage());
         }
+        if($request->get('x_test') == 'false') {
+            $message = 'Error occurred...';
+        }
+        return view('easy-pay-error', ['message' => $message, 'back_link' => $request->get('x_url_complete')]);
     }
 
     protected function startPayment(Request $request) {
       $settingsCollection = MerchantSettings::getSettingsByShopName(urlencode($request->get('x_shop_name')));
       $accessToken = $settingsCollection->first()->access_token;
       $shopUrl = $settingsCollection->first()->shop_url;
+      $params = $request->all();
+      unset($params['x_signature']);
+      $calculatedSignature = $this->shopifyAppService->calculateSignature($params, trim($settingsCollection->first()->gateway_password));
+      if($request->get('x_signature') != $calculatedSignature) {
+          throw new \App\Exceptions\ShopifyApiException('Signature not match while trying to pay');
+      }
       $checkout = $this->shopifyAppService->getCheckoutById($accessToken, $shopUrl, $request->get('x_reference'));
       $this->checkoutObject->setCheckout($checkout);
       if(empty($checkout)) {
-          throw new \Exception('Checkout with id: '. $request->get('x_reference') .' not found');
+          throw new \App\Exceptions\ShopifyApiException('Checkout with id: '. $request->get('x_reference') .' not found');
       }
       if($request->get('x_test') == 'true') {
         $key = ShopifyApiService::decryptKey($settingsCollection->first()->easy_test_secret_key);
