@@ -22,7 +22,7 @@ class Pay extends Controller
     private $logger;
     private $easyApiExceptionHandler;
     private $shopifyApiExceptionHandler;
-    
+
     public function __construct(ShopifyApiService $service,
                                 Request $request, EasyService $easyService,
             EasyApiService $easyApiService, CheckoutObject $checkoutObject, 
@@ -51,13 +51,14 @@ class Pay extends Controller
         try {
             return $this->startPayment($request);
         }catch(\App\Exceptions\EasyException $e) {
-           $this->easyApiExceptionHandler->handle($e, $request->all());
+           $message  =$this->easyApiExceptionHandler->handle($e, $request->all());
+           return view('easy-pay-error', ['message' => $message, 'back_link' => $request->get('x_url_complete')]);
         }catch(\App\Exceptions\ShopifyApiException $e ) {
            $this->shopifyApiExceptionHandler->handle($e);
         }
         catch(\Exception $e) {
            $this->logger->error($e->getMessage());
-       }
+        }
     }
 
     protected function startPayment(Request $request) {
@@ -69,7 +70,6 @@ class Pay extends Controller
       if(empty($checkout)) {
           throw new \Exception('Checkout with id: '. $request->get('x_reference') .' not found');
       }
-      
       if($request->get('x_test') == 'true') {
         $key = ShopifyApiService::decryptKey($settingsCollection->first()->easy_test_secret_key);
         $env = EasyApiService::ENV_TEST;

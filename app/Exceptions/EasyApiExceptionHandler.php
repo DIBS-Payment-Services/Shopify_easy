@@ -25,7 +25,7 @@ class EasyApiExceptionHandler {
                    $message = 'Bad request: ' . $e->getMessage();
                 break;
                 case 401:
-                    $message = 'Unauthorized';
+                    $message = 'Unauthorized access';
                 break;
                 case 404:
                     $message = 'Payment or charge not found';
@@ -34,10 +34,10 @@ class EasyApiExceptionHandler {
                     $message = 'Unexpected error';
                 break;
         }
-        
         $this->logger->error($prefixMessage . $message);
         if($add) {
             $this->logger->debug($add);
         }
+       return $message;
     }
 }
