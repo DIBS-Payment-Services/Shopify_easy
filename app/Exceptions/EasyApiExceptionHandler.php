@@ -25,7 +25,7 @@ class EasyApiExceptionHandler {
                    $message = 'Bad request: ' . $e->getMessage();
                 break;
                 case 401:
-                    $message = 'Unauthorized access';
+                    $message = 'Unauthorized access. Try to check Easy secret/live key';
                 break;
                 case 404:
                     $message = 'Payment or charge not found';
