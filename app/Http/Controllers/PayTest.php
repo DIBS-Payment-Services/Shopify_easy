@@ -4,10 +4,10 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 
-class Pay extends PayBase
+class PayTest extends PayBase
 {
-    const ENV = 'live';
-    const KEY = 'easy_secret_key';
+    const ENV = 'test';
+    const KEY = 'easy_test_secret_key';
     
     /**
      * Handle the incoming request.
@@ -18,15 +18,15 @@ class Pay extends PayBase
     public function __invoke(Request $request)
     {
         try {
-            return $this->startPayment($request);
+           return $this->startPayment($request);
         }catch(\App\Exceptions\EasyException $e) {
-           $this->easyApiExceptionHandler->handle($e, $request->all());
+           $message  = $this->easyApiExceptionHandler->handle($e, $request->all());
         }catch(\App\Exceptions\ShopifyApiException $e ) {
-            $this->shopifyApiExceptionHandler->handle($e);
+           $message = $this->shopifyApiExceptionHandler->handle($e);
         }
         catch(\Exception $e) {
-            $this->logger->error($e->getMessage());
+           $message = $this->logger->error($e->getMessage());
         }
-        return $this->showErrorPage('Error ocurred...');
+        return $this->showErrorPage($message);
     }
 }

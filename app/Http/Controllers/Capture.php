@@ -12,7 +12,6 @@ use App\PaymentDetails;
 
 class Capture extends Controller
 {
-   
     /**
      * Handle the incoming request.
      *

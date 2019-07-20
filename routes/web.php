@@ -12,7 +12,11 @@
 */
 Route::get('auth', 'AuthApp');
 Route::get('install', 'InstallApp');
+
 Route::post('pay', 'Pay');
+Route::post('pay_t', 'PayTest');
+
+
 Route::post('postForm', 'MerchantSettings@store');
 Route::get('form', 'MerchantSettings@index');
 Route::get('return', 'Accept');
