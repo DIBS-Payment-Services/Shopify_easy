@@ -120,7 +120,8 @@ class EasyService implements EasyServiceInterface {
                      }
               }
              $x_url_complete = $this->request->get('x_url_complete');
-             $data['checkout']['returnUrl'] = url('return') . "?x_url_complete={$x_url_complete}";
+             $url = ($this->request->get('x_test') == 'true') ? url('return_t')  : url('return'); 
+             $data['checkout']['returnUrl'] = "$url?x_url_complete={$x_url_complete}";
              $data['checkout']['integrationType'] = 'HostedPaymentPage';
              $appUrl = env('SHOPIFY_APP_URL');
              $callbackUrl = $this->request->get('x_url_callback');

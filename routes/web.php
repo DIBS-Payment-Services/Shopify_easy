@@ -17,9 +17,13 @@ Route::post('pay', 'Pay');
 Route::post('pay_t', 'PayTest');
 
 
+
 Route::post('postForm', 'MerchantSettings@store');
 Route::get('form', 'MerchantSettings@index');
 Route::get('return', 'Accept');
+
+Route::get('return_t', 'AcceptTest');
+
 Route::get('/', 'Index@index');
 
 

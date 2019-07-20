@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
-class Accept extends AcceptBase
+use Illuminate\Http\Request;
+
+class AcceptTest extends AcceptBase
 {
     
-    const ENV = 'live';
-    const KEY = 'easy_secret_key';
+    const ENV = 'test';
+    const KEY = 'easy_test_secret_key';
     
     /**
      * Handle the incoming request.
@@ -14,9 +16,8 @@ class Accept extends AcceptBase
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function __invoke()
+    public function __invoke(Request $request)
     {
         return $this->handle();
     }
-  
 }
