@@ -18,7 +18,7 @@ class Index extends Controller {
         $url = url('/install');
         return view('install', ['url' => $url]);
     }
-    
+
     public function install(Request $request) {
         $request->validate([
             'shop' => ['required', 'url']]);

@@ -4,11 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 
-class Pay extends PayBase
+class Pay extends PayBase implements LiveEnv
 {
-    const ENV = 'live';
-    const KEY = 'easy_secret_key';
-    
     /**
      * Handle the incoming request.
      *

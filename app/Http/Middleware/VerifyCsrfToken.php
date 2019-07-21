@@ -25,6 +25,7 @@ class VerifyCsrfToken extends Middleware
         'postForm',
         'callback',
         'capture',
+        'capture_t',
         'order_created',
         'charge_created'
     ];

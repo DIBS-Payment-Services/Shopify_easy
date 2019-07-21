@@ -2,9 +2,8 @@
 
 namespace App\Http\Controllers;
 
-class Accept extends AcceptBase implements LiveEnv
+class CaptureTest extends CaptureBase implements TestEnv
 {
-    
     /**
      * Handle the incoming request.
      *
@@ -13,7 +12,6 @@ class Accept extends AcceptBase implements LiveEnv
      */
     public function __invoke()
     {
-        return $this->handle();
+        $this->handle();
     }
-  
 }

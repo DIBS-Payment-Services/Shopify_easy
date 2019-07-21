@@ -9,14 +9,11 @@
 namespace App\Http\Controllers;
 
 /**
- * Description of Lara
  *
  * @author mabe
  */
-class Capture extends CaptureBase implements LiveEnv {
+interface TestEnv {
+   const ENV = 'test';
+   const KEY = 'easy_test_secret_key';
     
-    public function __invoke() {
-        
-        $this->handle();
-    }
 }

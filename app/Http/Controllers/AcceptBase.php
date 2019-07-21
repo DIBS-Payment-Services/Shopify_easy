@@ -8,7 +8,6 @@ use App\Service\ShopifyApiService;
 use App\MerchantSettings;
 use App\Service\EasyApiService;
 
-use \Monolog\Logger;
 
 /**
  * Description of AcceptBase

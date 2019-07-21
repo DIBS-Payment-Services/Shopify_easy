@@ -4,11 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 
-class AcceptTest extends AcceptBase
+class AcceptTest extends AcceptBase implements TestEnv
 {
-    
-    const ENV = 'test';
-    const KEY = 'easy_test_secret_key';
     
     /**
      * Handle the incoming request.

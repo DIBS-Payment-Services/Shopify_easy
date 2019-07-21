@@ -4,11 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 
-class PayTest extends PayBase
+class PayTest extends PayBase implements TestEnv
 {
-    const ENV = 'test';
-    const KEY = 'easy_test_secret_key';
-    
     /**
      * Handle the incoming request.
      *
