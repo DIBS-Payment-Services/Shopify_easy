@@ -27,6 +27,10 @@ class OrderCreatedHook extends Controller{
                              \App\Exceptions\Handler $handler,
                              \Illuminate\Log\Logger $logger)
     {
+        if(!strstr($request->get('gateway'), 'dibs_easy_checkout')) {
+            $logger->debug('not dibs easy');
+            return response('HTTP/1.0 500 Internal Server Error', 200);
+        }
         try{
             $collectionPaymentDetail = PaymentDetails::getDetailsByCheckouId($request->get('checkout_id'));
             $settingsCollection = MerchantSettings::getSettingsByShopUrl($collectionPaymentDetail->first()->shop_url);
