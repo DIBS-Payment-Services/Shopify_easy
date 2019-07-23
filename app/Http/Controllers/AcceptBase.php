@@ -86,8 +86,7 @@ class AcceptBase extends Controller {
         } catch (\App\Exceptions\EasyException $e) {
               $this->eh->handle($e, $this->request->all());
         } catch(\Exception $e) {
-              echo $e->getMessage();
-              return response('HTTP/1.0 500 Internal Server Error', 500);
+               return response('HTTP/1.0 500 Internal Server Error', 500);
         }
     }
 }
