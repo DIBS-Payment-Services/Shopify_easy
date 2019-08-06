@@ -53,9 +53,10 @@ class PayBase extends Controller {
       
       unset($params['x_signature']);
       $calculatedSignature = $this->shopifyAppService->calculateSignature($params, trim($settingsCollection->first()->gateway_password));
-      if($request->get('x_signature') != $calculatedSignature) {
+      /*if($request->get('x_signature') != $calculatedSignature) {
           throw new \App\Exceptions\ShopifyApiException('Signature not match while trying to pay');
       }
+      */
       $checkout = $this->shopifyAppService->getCheckoutById($accessToken, $shopUrl, $request->get('x_reference'));
       $this->checkoutObject->setCheckout($checkout);
       
