@@ -28,7 +28,7 @@ class MerchantSettings extends Controller
                               "b2c_b2b_b2c" => "B2C & B2B (defaults to B2C)", 
                               "b2b_b2c_b2b" => "B2B & B2C (defaults to B2B)" ];
             $params['gateway_install_link'] = env('EASY_GATEWAY_INSTALL_URL');
-            
+            $params['shop_origin'] = session('shop_url');
             return view('easy-settings-form', $params);
         }
     }

@@ -62,6 +62,7 @@
        <br/>
     <input type="submit" class="btn primary" value="Submit">
 </form>
+<a href="https://{{ $shop_origin }}/admin/apps"> << back  </a>
 </div>
     <style>
         #dibs-easy-settings-form{

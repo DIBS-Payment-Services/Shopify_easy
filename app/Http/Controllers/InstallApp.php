@@ -21,6 +21,6 @@ class InstallApp extends Controller
         $shopUrl = $request->get('shop');
         $install_url = "https://{$shopUrl}/admin/oauth/authorize?client_id={$apiKey}&scope=".self::GRANT_ACCESS_SCOPE."" .
                 "&redirect_uri=https://{$appUrl}/auth";
-        return redirect($install_url);
+        return view('redirect', ['install_url' => $install_url]);
     }
 }
