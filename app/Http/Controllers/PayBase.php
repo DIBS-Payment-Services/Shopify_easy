@@ -16,7 +16,7 @@ use Illuminate\Http\Request;
  * @author mabe
  */
 class PayBase extends Controller {
-    
+
     protected $shopify_access_token;
     protected $shop_url;
     protected $shopifyAppService;
@@ -44,13 +44,13 @@ class PayBase extends Controller {
         $this->shopifyApiExceptionHandler = $ehsh;
         
     }
-    
+
    protected function startPayment(Request $request) {
       $settingsCollection = MerchantSettings::getSettingsByShopName(urlencode($request->get('x_shop_name')));
       $accessToken = $settingsCollection->first()->access_token;
       $shopUrl = $settingsCollection->first()->shop_url;
       $params = $request->all();
-      
+
       unset($params['x_signature']);
       $calculatedSignature = $this->shopifyAppService->calculateSignature($params, trim($settingsCollection->first()->gateway_password));
       /*if($request->get('x_signature') != $calculatedSignature) {
@@ -58,22 +58,21 @@ class PayBase extends Controller {
       }
       */
       $checkout = $this->shopifyAppService->getCheckoutById($accessToken, $shopUrl, $request->get('x_reference'));
-      $this->checkoutObject->setCheckout($checkout);
-      
+
       if(empty($checkout)) {
           throw new \App\Exceptions\ShopifyApiException('Checkout with id: '. $request->get('x_reference') .' not found');
       }
-      
-      $filedName = static::KEY;
-      $key = ShopifyApiService::decryptKey($settingsCollection->first()->$filedName);
-      
+
       $settings = current($settingsCollection->toArray());
+      $this->checkoutObject->setCheckout($checkout);
       $createPaymentParams = $this->easyService->generateRequestParams($settings, $this->checkoutObject);
       $data = json_encode($createPaymentParams);
-      
+
+      $filedName = static::KEY;
+      $key = ShopifyApiService::decryptKey($settingsCollection->first()->$filedName);
       $this->easyApiService->setAuthorizationKey($key);
-      
       $this->easyApiService->setEnv(static::ENV);
+
       if($result = $this->easyApiService->createPayment($data)) {
            $result_decoded = json_decode($result);
            $requestParams = $request->all();
@@ -92,7 +91,7 @@ class PayBase extends Controller {
            return redirect($redirectUrl);
       }
    }
-   
+
    protected function showErrorPage($message) {
        return view('easy-pay-error', ['message' => $message, 
                    'back_link' => $this->request->get('x_url_complete')]);
