@@ -12,7 +12,7 @@ use Illuminate\Http\Request;
 class Index extends Controller {
     
     const GRANT_ACCESS_SCOPE = 'read_checkouts,read_products,read_orders';
-    
+
     public function index(Request $request)
     {
         $url = url('/install');
@@ -30,5 +30,4 @@ class Index extends Controller {
                 "&redirect_uri=https://{$appUrl}/auth";
         return redirect($install_url);
     }
-
 }

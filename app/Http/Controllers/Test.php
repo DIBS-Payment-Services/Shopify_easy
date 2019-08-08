@@ -16,6 +16,6 @@ class Test extends Controller
      */
     public function __invoke(Request $request)
     {
-       PaymentDetails::setCaptureRequestParams('8523933646945', 'fdvdfvd fv dfv dfvdfvdfvdfvd');
+
     }
 }

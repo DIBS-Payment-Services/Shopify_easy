@@ -14,7 +14,7 @@ use App\Service\EasyApiService;
  * @author mabe
  */
 class OrderCreatedHook extends Controller{
-    
+
     /**
      * Handle the incoming request.
      *
@@ -33,6 +33,9 @@ class OrderCreatedHook extends Controller{
         }
         try{
             $collectionPaymentDetail = PaymentDetails::getDetailsByCheckouId($request->get('checkout_id'));
+            if( $collectionPaymentDetail->count() == 0) {
+                return response('OK', 200);
+            }
             $settingsCollection = MerchantSettings::getSettingsByShopUrl($collectionPaymentDetail->first()->shop_url);
             $paymentId = $collectionPaymentDetail->first()->dibs_paymentid;
             if($collectionPaymentDetail->first()->test == 1) {
@@ -47,11 +50,11 @@ class OrderCreatedHook extends Controller{
             $paymentObj = json_decode($paymentJson);
             $jsonData = json_encode(['reference' => $request->get('name'), 'checkoutUrl' => $paymentObj->payment->checkout->url]);
             $easyApiService->updateReference($paymentId, $jsonData);
-   
+
         } catch(\App\Exceptions\EasyException $e ) {
            $eh->handle($e);
            return response('HTTP/1.0 500 Internal Server Error', 500);
-        } 
+        }
         catch(\Exception $e) {
            $handler->report($e);
            $logger->debug($request->all());
