@@ -39,7 +39,7 @@ class AuthApp extends Controller
                             'shop_name' =>  urlencode($shopInfo['shop']['name'])];
                 $this->shopifyAppService->registerOrederCreatedHook($result_array['access_token'], $request->get('shop'));
                 MerchantSettings::addOrUpdateShop($params);
-                return redirect('form');
+                return redirect('https://' . $request->get('shop') . '/admin/apps/easy-checkout-test/form');
             }
     }
 

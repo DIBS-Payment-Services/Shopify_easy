@@ -19,8 +19,10 @@ class InstallApp extends Controller
         $apiKey = env('SHOPIFY_API_KEY');
         $appUrl = env('SHOPIFY_APP_URL');
         $shopUrl = $request->get('shop');
-        $install_url = "https://{$shopUrl}/admin/oauth/authorize?client_id={$apiKey}&scope=".self::GRANT_ACCESS_SCOPE."" .
                 "&redirect_uri=https://{$appUrl}/auth";
-        return view('redirect', ['install_url' => $install_url]);
+        return view('redirect', ['shopOrigin' => $request->get('shop'), 
+                                 'apiKey' => $apiKey, 
+                                 'redirect_uri' => "https://{$appUrl}/auth",
+                                 'scope' => self::GRANT_ACCESS_SCOPE]);
     }
 }
