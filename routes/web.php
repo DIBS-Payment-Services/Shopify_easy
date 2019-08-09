@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Middleware\CheckHmack;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -10,7 +12,7 @@
 | contains the "web" middleware group. Now create something great!
 |
 */
-Route::get('auth', 'AuthApp');
+Route::get('auth', 'AuthApp')->middleware(CheckHmack::class);
 Route::get('install', 'InstallApp');
 
 Route::post('pay', 'Pay');

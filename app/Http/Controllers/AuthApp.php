@@ -22,10 +22,7 @@ class AuthApp extends Controller
      */
     public function __invoke(Request $request)
     {
-           if(!$this->checkHmac($request)) {
-                 die("unathorizesd access");
-           }
-           if($result = $this->shopifyAppService->auth($request)) {
+          if($result = $this->shopifyAppService->auth($request)) {
                 $result_array = json_decode($result, true);
                 session(['access_token' => $result_array['access_token']]);
                 session(['shop_url' => $request->get('shop')]);
@@ -34,32 +31,12 @@ class AuthApp extends Controller
                 $params = ['shop_url' => $request->get('shop'),
                            'access_token' => $result_array['access_token'],
                            'gateway_password' => crypt($request->get('shop'),
-                            env('SHOPIFY_API_SECRET')),
-                            'shop_id' => $shopInfo['shop']['id'],
-                            'shop_name' =>  urlencode($shopInfo['shop']['name'])];
+                           env('SHOPIFY_API_SECRET')),
+                           'shop_id' => $shopInfo['shop']['id'],
+                           'shop_name' =>  urlencode($shopInfo['shop']['name'])];
                 $this->shopifyAppService->registerOrederCreatedHook($result_array['access_token'], $request->get('shop'));
                 MerchantSettings::addOrUpdateShop($params);
                 return redirect('https://' . $request->get('shop') . '/admin/apps/' . env('SHOPIFY_APP_NAME') .  '/form');
-            }
+          }
     }
-
-    /**
-     *
-     * @param Request $request
-     * @return boolean
-     */
-    private function checkHmac(Request $request)
-    {
-        $result = false;
-        $requestParams = $request->all();
-        ksort($requestParams);
-        $hmac = $request->get('hmac');
-        unset($requestParams['hmac']);
-        $message = http_build_query($requestParams);
-        if($hmac == hash_hmac('sha256', $message, env('SHOPIFY_API_SECRET'))) {
-            $result = true;
-        }
-        return $result;
-    }
-
 }
