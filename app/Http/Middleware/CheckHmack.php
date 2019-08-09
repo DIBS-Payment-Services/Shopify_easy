@@ -3,7 +3,6 @@
 namespace App\Http\Middleware;
 
 use Closure;
-
 use Illuminate\Http\Request;
 
 class CheckHmack
@@ -20,27 +19,20 @@ class CheckHmack
         if(!$this->checkHmac($request)) {
           die("unathorizesd access");
         }
-        
         return $next($request);
     }
-    
-  
-     /**
+
+    /**
      *
      * @param Request $request
      * @return boolean
      */
     private function checkHmac(Request $request)
     {
-        $result = false;
         $requestParams = $request->all();
         ksort($requestParams);
-        $hmac = $request->get('hmac');
         unset($requestParams['hmac']);
         $message = http_build_query($requestParams);
-        if($hmac == hash_hmac('sha256', $message, env('SHOPIFY_API_SECRET'))) {
-            $result = true;
-        }
-        return $result;
+        return ($request->get('hmac') == hash_hmac('sha256', $message, env('SHOPIFY_API_SECRET')));
     }
 }
