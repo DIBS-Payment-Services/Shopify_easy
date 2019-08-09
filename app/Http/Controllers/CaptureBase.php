@@ -36,6 +36,7 @@ class CaptureBase extends Controller{
     private $eh;
     private $ehsh;
     private $handler;
+    private $logger;
 
     public function __construct(Request $request,  
                                 EasyService $easyService,
@@ -44,7 +45,8 @@ class CaptureBase extends Controller{
                                 \App\Exceptions\Handler $handler,
                                 CheckoutObject $checkoutObject,
                                 EasyApiService $easyApiService,
-                                ShopifyApiService $shopifyApiService
+                                ShopifyApiService $shopifyApiService,
+                                \Illuminate\Log\Logger $logger
                                     
             ) {
         $this->request = $request;
@@ -57,8 +59,9 @@ class CaptureBase extends Controller{
         $this->checkoutObject = $checkoutObject;
         $this->easyApiService = $easyApiService;
         $this->shopifyApiService = $shopifyApiService;
+        $this->logger = $logger;
     }
-    
+
         protected function handle() {
           try{
              $paymentDetails = PaymentDetails::getDetailsByPaymentId($this->request->get('x_gateway_reference'));
@@ -95,7 +98,6 @@ class CaptureBase extends Controller{
                  $data['amount'] = $this->request->get('x_amount') * 100;
                  $data['orderItems'][] = $this->easyService->getFakeOrderRow($this->request->get('x_amount'), 'captured-partially1');
              }
-             $paramsRequestJson = json_encode($this->request->all());
              $this->easyApiService->chargePayment($this->request->get('x_gateway_reference'), json_encode($data));
          } catch(\App\Exceptions\ShopifyApiException $e) {
             $this->ehsh->handle($e, $this->request->all());
@@ -106,6 +108,7 @@ class CaptureBase extends Controller{
          } 
          catch(\Exception $e) {
             $this->handler->report($e);
+            $this->logger->debug($this->request->all());
             return response('HTTP/1.0 500 Internal Server Error', 500);
          }
     }

@@ -12,6 +12,6 @@ class CaptureTest extends CaptureBase implements TestEnv
      */
     public function __invoke()
     {
-        $this->handle();
+        return $this->handle();
     }
 }

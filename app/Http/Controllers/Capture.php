@@ -17,6 +17,6 @@ class Capture extends CaptureBase implements LiveEnv {
     
     public function __invoke() {
         
-        $this->handle();
+        return $this->handle();
     }
 }
