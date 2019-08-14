@@ -60,7 +60,15 @@ class ShopifyReturnParams {
     public function setX_Message() {
         $this->params['x_message'] = '';
     }
-    
+
+    public function setX_CardType($field) {
+        $this->params['x_card_type'] = $field;
+    }
+
+    public function setX_CardMaskedPan($field) {
+        $this->params['x_card_masked_pan'] = $field;
+    }
+
     public function getParams() {
         return $this->params;
     }
