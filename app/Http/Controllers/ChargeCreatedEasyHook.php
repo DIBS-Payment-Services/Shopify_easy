@@ -38,7 +38,6 @@ class ChargeCreatedEasyHook extends Controller {
               $shopifyReturnParams->setX_Result('completed');
               $shopifyReturnParams->setX_Timestamp(date("Y-m-d\TH:i:s\Z"));
               $shopifyReturnParams->setX_TransactionType('capture');
-              $shopifyReturnParams->setX_Message();
               $settingsCollection = MerchantSettings::getSettingsByShopUrl($paymentDetails->first()->shop_url);
               $pass = $settingsCollection->first()->gateway_password;
               $shopifyReturnParams->setX_Signature($shopifyApiService->calculateSignature($shopifyReturnParams->getParams(),$pass));
