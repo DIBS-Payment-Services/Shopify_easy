@@ -10,7 +10,7 @@
   <div id="root"></div>
   <script type="text/javascript">
         window.shopifyParams = {easy_test_secret_key: "{{ $easy_test_secret_key }}", 
-                                easyGatewyaPassword: "{{$gateway_password}}",
+                                easyGatewyaPassword: "{{ $gateway_password }}",
                                 easy_secret_key: "{{ $easy_secret_key }}", 
                                 language: "{{ $language }}", 
                                 allowed_customer_type: "{{ $allowed_customer_type }}" ,
@@ -18,8 +18,9 @@
                                 terms_and_conditions_url: "{{ $terms_and_conditions_url }}",
                                 actionUrl: "{{ $action_url }}",
                                 installGatewayRedirect: "{{ $install_gateway_redirect }}",
-                                shop_url: "{{ $shop_origin }}"
-    };
+                                shop_url: "{{ $shop_origin }}"};
     </script>  
-  <script type="text/javascript" src="https://30f4782f.ngrok.io/js/bundle.js"></script></body>
+    <script type="text/javascript" src="{{ asset('js/bundle.js') }} "></script>
+    <script type="text/javascript" src="{{ asset('public/js/bundle.js') }}"></script>
+  </body>
  </html>

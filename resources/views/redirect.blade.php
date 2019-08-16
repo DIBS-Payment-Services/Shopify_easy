@@ -14,7 +14,7 @@
 
   // If the current window is the 'parent', change the URL by setting location.href
   if (window.top == window.self) {
-    window.location.assign('https://' + {{ $shopOrigin }} + '/admin' + permissionUrl);
+    window.location.assign('https://' + '{{ $shopOrigin }}' + '/admin' + permissionUrl);
 
 // If the current window is the 'child', change the parent's URL with Shopify App Bridge's Redirect action
 } else {

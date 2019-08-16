@@ -8,7 +8,7 @@ use App\Service\ShopifyApiService;
 class MerchantSettings extends Model
 {
     protected $table = 'merchants_settings';
-    protected $fillable = ['shop_name', 'shop_url', 'access_token', 'gateway_password', 'shop_id']; 
+    protected $fillable = ['shop_name', 'shop_url', 'access_token', 'gateway_password', 'shop_id', 'easy_merchantid']; 
     protected $shopifyAppService;
 
     public function __construct(array $attributes = array()) {
