@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Service\ShopifyApiService;
 
+use Validator;
+
+
 class MerchantSettings extends Controller
 {
     /**
@@ -29,6 +32,9 @@ class MerchantSettings extends Controller
                               "b2b_b2c_b2b" => "B2B & B2C (defaults to B2B)" ];
             $params['gateway_install_link'] = env('EASY_GATEWAY_INSTALL_URL');
             $params['shop_origin'] = session('shop_url');
+            $params['action_url'] = 'https://' . env('SHOPIFY_APP_URL') . '/postForm';
+            $params['install_gateway_redirect'] = env('EASY_GATEWAY_INSTALL_URL');
+            
             return view('easy-settings-form', $params);
         }
     }
@@ -41,16 +47,21 @@ class MerchantSettings extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
+        $data = json_decode($request->getContent(), true);
+        $rules = [
             'terms_and_conditions_url' => 'required',
             'terms_and_conditions_url'  =>'url',
             'easy_secret_key'  => 'required',
             'easy_test_secret_key' =>  'required',
-            'easy_merchantid' => 'required']);
-        
-        \App\MerchantSettings::saveShopSettings($request);
-        return redirect('form')
-               ->with('success','Data has been saved');
-    }
+            'easy_merchantid' => 'required'];
 
+        // TODO validation!
+        $validator = Validator::make($data, $rules);
+        if ($validator->passes()) {
+            error_log('passed');
+        } else {
+            error_log('failed');
+        }
+        \App\MerchantSettings::saveShopSettings($request);
+    }
 }

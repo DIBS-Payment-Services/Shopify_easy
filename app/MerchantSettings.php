@@ -8,7 +8,7 @@ use App\Service\ShopifyApiService;
 class MerchantSettings extends Model
 {
     protected $table = 'merchants_settings';
-    protected $fillable = ['shop_name', 'shop_url', 'access_token', 'gateway_password', 'shop_id']; 
+    protected $fillable = ['shop_name', 'shop_url', 'access_token', 'gateway_password', 'shop_id', 'easy_merchantid']; 
     protected $shopifyAppService;
 
     public function __construct(array $attributes = array()) {
@@ -42,10 +42,11 @@ class MerchantSettings extends Model
      */
     public static function saveShopSettings(\Illuminate\Http\Request $request)
     {
-       $params = $request->all();
+       $params = json_decode($request->getContent(), true);
        $params['easy_secret_key'] = ShopifyApiService::encryptKey($params['easy_secret_key']);
        $params['easy_test_secret_key'] = ShopifyApiService::encryptKey($params['easy_test_secret_key']);
-       self::query()->where('shop_url', $request->get('shop_url'))->update($params);
+       
+       self::query()->where('shop_url', $params['shop_url'])->update($params);
     }
 
     public static function addOrUpdateShop($params)

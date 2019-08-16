@@ -46,7 +46,17 @@ class PayBase extends Controller {
     }
 
    protected function startPayment(Request $request) {
-      $settingsCollection = MerchantSettings::getSettingsByShopName(urlencode($request->get('x_shop_name')));
+      $settingsCollection = MerchantSettings::getSettingsByMerchantId($request->get('x_account_id'));
+      if($settingsCollection->count() > 1) {
+          $settingsCollection = MerchantSettings::getSettingsByShopName($request->get('x_shop_name'));
+      }
+
+      if($settingsCollection->count() == 0) {
+          throw new \App\Exceptions\ShopifyApiException('Cant identyfy the shop. Please check app settings'. PHP_EOL .
+                                                        'Merchantid: ' . $request->get('x_account_id') .
+                                                        'Shop name:' . $request->get('x_shop_name'));
+      }
+
       $accessToken = $settingsCollection->first()->access_token;
       $shopUrl = $settingsCollection->first()->shop_url;
       $params = $request->all();
