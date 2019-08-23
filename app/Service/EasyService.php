@@ -66,7 +66,10 @@ class EasyService implements EasyServiceInterface {
               } else {
                   unset($phone);
               }
-          } 
+          }
+          // @todo detect phone...
+          $phone = null; 
+          
           if(!empty($phone)) {
                $phonePrefix = substr($phone, 0, 3);
                $number = substr($phone, 3);
