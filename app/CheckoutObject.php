@@ -9,7 +9,6 @@ namespace App;
  */
 class CheckoutObject {
 
-
     private $checkout;
 
     public function setCheckout(array $checkout) {
@@ -25,10 +24,10 @@ class CheckoutObject {
     }
 
     public function getIso2countryCode() {
-        return isset($this->checkout['shipping_address']['country_code']) ? 
-                     $this->checkout['shipping_address']['country_code'] : 
+        return isset($this->checkout['shipping_address']['country_code']) ?
+                     $this->checkout['shipping_address']['country_code'] :
                      $this->checkout['billing_address']['country_code'];
-          
+
     }
 
     public function getCustomerPhone() {
@@ -36,7 +35,8 @@ class CheckoutObject {
     }
 
     public function getShippingAddresPhone() {
-        return $this->checkout['shipping_address']['phone'];
+        return isset($this->checkout['shipping_address']['phone']) ?
+                     $this->checkout['shipping_address']['phone'] : null;
     }
 
     public function getBillinAddresPhone() {
@@ -44,26 +44,26 @@ class CheckoutObject {
     }
 
     public function getAddressLine1() {
-        return isset($this->checkout['shipping_address']['address1']) ? 
-                     $this->checkout['shipping_address']['address1'] : 
+        return isset($this->checkout['shipping_address']['address1']) ?
+                     $this->checkout['shipping_address']['address1'] :
                      $this->checkout['billing_address']['address1'];
     }
 
     public function getAddressLine2() {
-        return isset($this->checkout['shipping_address']['address2']) ? 
-                     $this->checkout['shipping_address']['address2'] : 
+        return isset($this->checkout['shipping_address']['address2']) ?
+                     $this->checkout['shipping_address']['address2'] :
                      $this->checkout['billing_address']['address2'];
     }
 
     public function getPostalCode() {
-        return isset($this->checkout['shipping_address']['zip']) ? 
-                     $this->checkout['shipping_address']['zip'] : 
+        return isset($this->checkout['shipping_address']['zip']) ?
+                     $this->checkout['shipping_address']['zip'] :
                      $this->checkout['billing_address']['zip'];
     }
 
     public function getCity() {
-        return isset($this->checkout['shipping_address']['city']) ? 
-                     $this->checkout['shipping_address']['city'] : 
+        return isset($this->checkout['shipping_address']['city']) ?
+                     $this->checkout['shipping_address']['city'] :
                      $this->checkout['billing_address']['city'];
     }
 
@@ -82,19 +82,19 @@ class CheckoutObject {
     public function getLineItems() {
         return $this->checkout['line_items'];
     }
-    
+
     public function getShippingLines() {
         return $this->checkout['shipping_lines'];
     }
-    
+
     public function getTotalDiscounts() {
         return $this->checkout['total_discounts'];
     }
-    
+
     public function isTaxesInleded() {
         return $this->checkout['taxes_included'];
     }
-    
+
     public function getTotalTax() {
         return $this->checkout['total_tax'];
     }

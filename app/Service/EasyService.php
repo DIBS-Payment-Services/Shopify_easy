@@ -14,116 +14,99 @@ class EasyService implements EasyServiceInterface {
 
     private $request;
     private $logger;
-    
+
     public function __construct(Request $request, \Illuminate\Log\Logger $logger) {
         $this->request = $request;
         $this->logger = $logger;
     }
 
     public function generateRequestParams($settings, \App\CheckoutObject $checkoutObject): array {
-            $data = array(
-            'order' => array(
+          $data = [
+            'order' => [
                 'items' => $this->getRequestObjectItems($checkoutObject),
                 'amount' => $checkoutObject->getAmount(),
                 'currency' => $checkoutObject->getCurrency(),
-                'reference' => $this->request->get('x_reference')),
-             'checkout' => array(
+                'reference' => $this->request->get('x_reference')],
+             'checkout' => [
                     'termsUrl' => $settings['terms_and_conditions_url'],
-                ),
-            );
-          $iso2countryCode = $checkoutObject->getIso2countryCode();
-          $res = DirectoryCountry::getCountry($iso2countryCode)->first();
-          $iso3countryCode = $res->iso3_code;
-          $phone = null;
-          if(!empty($checkoutObject->getCustomerPhone())) {
-              $phone= $checkoutObject->getCustomerPhone();
-          } 
-          if(!empty($checkoutObject->getBillinAddresPhone())){
-               $phone= $checkoutObject->getBillinAddresPhone();
-          }
-          if(!empty($checkoutObject->getShippingAddresPhone())){
-               $phone= $checkoutObject->getShippingAddresPhone();
-          }
-          $phone = str_replace([' ', '-', '(', ')'], '', $phone);
-          if(!preg_match('/^\+[0-9]*/', $phone)) {
-              if(preg_match('/^[0-9]{5,15}/', $phone)) {
-                  $prefix = null;
-                  switch($iso3countryCode) {
-                      case 'SWE':
-                          $prefix= '+46';
-                          break;
-                      case 'DNK':
-                           $prefix= '+45';
-                          break;
-                      case 'NOR':
-                          $prefix= '+47';
-                          break;
+                ],
+           ];
 
-                  }
-                  if($prefix) {
-                    $phone = $prefix . $phone;
-                  }
-              } else {
-                  unset($phone);
-              }
-          }
-          // @todo detect phone...
-          $phone = null; 
-          
-          if(!empty($phone)) {
+           // consumers data
+           $firstName = ($checkoutObject->getCustomerFirstName()) ? $checkoutObject->getCustomerFirstName() : 'FirstName';
+           $lastName = ($checkoutObject->getcustomerLastName()) ? $checkoutObject->getcustomerLastName() : 'LastName';
+
+           $iso2countryCode = $checkoutObject->getIso2countryCode();
+           $res = DirectoryCountry::getCountry($iso2countryCode)->first();
+           $iso3countryCode = $res->iso3_code;
+
+           $consumerData = [
+                'email' => $checkoutObject->getCustomerEmail(),
+                 'shippingAddress' => [
+                            'addressLine1' =>  $checkoutObject->getAddressLine1(),
+                            'addressLine2' =>  $checkoutObject->getAddressLine2(),
+                            'postalCode' =>  $checkoutObject->getPostalCode(),
+                            'city' =>  $checkoutObject->getCity(),
+                            'country' =>  $iso3countryCode],
+                 'privatePerson' => [
+                            'firstName' => $firstName,
+                            'lastName' => $lastName]
+            ];
+
+            $phone = null;
+
+            if(!empty($checkoutObject->getCustomerPhone())) {
+              $phone = $checkoutObject->getCustomerPhone();
+            } 
+            if(!empty($checkoutObject->getBillinAddresPhone())){
+               $phone = $checkoutObject->getBillinAddresPhone();
+            }
+            if(!empty($checkoutObject->getShippingAddresPhone())){
+               $phone = $checkoutObject->getShippingAddresPhone();
+            }
+
+            $phone = str_replace([' ', '-', '(', ')'], '', $phone);
+
+            if(preg_match('/\+[0-9]{7,18}$/', $phone) ) {
                $phonePrefix = substr($phone, 0, 3);
                $number = substr($phone, 3);
-               $firstName = ($checkoutObject->getCustomerFirstName()) ? $checkoutObject->getCustomerFirstName() : 'FirstName';
-               $lastName = ($checkoutObject->getcustomerLastName()) ? $checkoutObject->getcustomerLastName() : 'LastName';
-               $data['checkout']['consumer'] = array(
-                            'email' => $checkoutObject->getCustomerEmail(),
-                            "shippingAddress" => array(
-                                "addressLine1"=>  $checkoutObject->getAddressLine1(),
-                                "addressLine2"=>  $checkoutObject->getAddressLine2(),
-                                "postalCode"=>  $checkoutObject->getPostalCode(),
-                                "city"=>  $checkoutObject->getCity(),
-                                "country"=>  $iso3countryCode,
-                              ),
-                          'phoneNumber' => ['prefix' => $phonePrefix,   'number' => $number],
-                          'privatePerson' => array(
-                                'firstName' => $firstName,
-                                'lastName' => $lastName,
-                         )
-                 );
-              $data['checkout']['merchantHandlesConsumerData'] = true;
-             } 
-             $supportedTypes = [];
-             $default = '';
-             if(trim($settings['allowed_customer_type'])) {
-                    $default = null;
+               $consumerData['phoneNumber'] = ['prefix' => $phonePrefix, 'number' => $number];
+            }
+
+            $data['checkout']['consumer'] = $consumerData;
+            $data['checkout']['merchantHandlesConsumerData'] = true;
+
+            // b2b or b2bc 
+            if(trim($settings['allowed_customer_type'])) {
                     switch($settings['allowed_customer_type']) {
                         case 'b2c' :
-                            $supportedTypes = array('B2C');
+                            $supportedTypes = ['B2C'];
                             $default = 'B2C';
-                            break;
+                        break;
                         case 'b2b':
-                            $supportedTypes = array('B2B');
+                            $supportedTypes = ['B2B'];
                             $default = 'B2B';
-                            break;
+                        break;
                         case 'b2c_b2b_b2c':
-                            $supportedTypes = array('B2C', 'B2B');
+                            $supportedTypes = ['B2C', 'B2B'];
                             $default = 'B2C';
-                            break;
+                        break;
                         case 'b2b_b2c_b2b':
-                            $supportedTypes = array('B2C', 'B2B');
+                            $supportedTypes = ['B2C', 'B2B'];
                             $default = 'B2B';
-                            break;
-                }
-                    $consumerType = array('supportedTypes' => $supportedTypes, 
-                                          'default'=>$default);
-                    if($consumerType) {
-                         $checkout = $data['checkout'];
-                         $checkout['consumerType'] = $consumerType;
-                         $data['checkout'] = $checkout;
-                     }
-              }
+                        break;
+                        default:
+                           $supportedTypes = ['B2C', 'B2B'];
+                           $default = 'B2C';
+
+               }
+                   $consumerType = ['supportedTypes' => $supportedTypes,
+                                    'default' => $default];
+                   $data['checkout']['consumerType'] = $consumerType;
+             }
+
              $x_url_complete = $this->request->get('x_url_complete');
-             $url = ($this->request->get('x_test') == 'true') ? url('return_t')  : url('return'); 
+             $url = ($this->request->get('x_test') == 'true') ? url('return_t')  : url('return');
              $data['checkout']['returnUrl'] = "$url?x_url_complete={$x_url_complete}";
              $data['checkout']['integrationType'] = 'HostedPaymentPage';
              $appUrl = env('SHOPIFY_APP_URL');
@@ -134,7 +117,7 @@ class EasyService implements EasyServiceInterface {
              $chargeCreatedHookUrl = "https://{$appUrl}/charge_created?x_reference={$x_reference}";
              $data['notifications'] = 
                  ['webhooks' => 
-                    [['eventName' => 'payment.reservation.created', 
+                    [['eventName' => 'payment.reservation.created',
                      'url' => $reservationCreatedurl,
                      'authorization' => substr(str_shuffle(MD5(microtime())), 0, 10)],
                      ['eventName' => 'payment.charge.created',
@@ -162,21 +145,12 @@ class EasyService implements EasyServiceInterface {
                     $grossTotalAmount = round($item['price'] * 100) * $item['quantity'];
                     $netTotalAmount =  round($item['price'] *  $item['quantity'] / (1 + $this->getTaxRate($item)) * 100);
                } else {
-                    
-                    /*
-                    $unitPrice =  round($item['price'] * 100);
-                    $taxRate =  round($this->getTaxRate($item) * 10000);
-                    $taxAmount = round($this->getTaxPrice($item) * 100);
-                    $grossTotalAmount = round(($item['price'] + $this->getTaxPrice($item)) * 100) * $item['quantity'];
-                    $netTotalAmount =  round($item['price'] *  $item['quantity'] * 100);
-                    */
-                    
                     $unitPrice =  round($item['price'] * 100);
                     $taxRate =  0;
                     $taxAmount = 0;
                     $grossTotalAmount = round(($item['price'] * 100)) * $item['quantity'];
                     $netTotalAmount =  round($item['price'] *  $item['quantity'] * 100);
-                    
+
                }
                $items[] = array(
                     'reference' => $item['product_id'],
@@ -191,19 +165,19 @@ class EasyService implements EasyServiceInterface {
             }
 
             //Shipping
-            if($shippingLine = $this->getShippingLine($checkoutObject)) { 
-                $items[] = $shippingLine; 
+            if($shippingLine = $this->getShippingLine($checkoutObject)) {
+                $items[] = $shippingLine;
             }
 
             //Discount
             if($this->getDiscountAmount($checkoutObject) > 0) {
                 $items[] = $this->discountRow($this->getDiscountAmount($checkoutObject));
             }
-            
+
             if(!$checkoutObject->isTaxesInleded()) {
                  $items[] = $this->taxRow($checkoutObject->getTotalTax());
             }
-            
+
             return $items;
     }
 
@@ -218,23 +192,11 @@ class EasyService implements EasyServiceInterface {
                 $grossTotalAmount = round($current['price'] * 100);
                 $netTotalAmount =  round($current['price'] / (1 + $this->getTaxRate($current)) * 100);
             } else {
-                 
-                 /*
-                 $unitPrice =  round($current['price'] * 100);
-                 $taxRate =  round($this->getTaxRate($current) * 10000);
-                 $taxAmount = round($this->getTaxPrice($current) * 100);
-                 $grossTotalAmount = round(($current['price'] + $this->getTaxPrice($current)) * 100);
-                 $netTotalAmount =  round($current['price'] *   100);
-                 */
-                
                  $unitPrice = round($current['price'] * 100);
                  $taxRate =  0;
                  $taxAmount = 0;
                  $grossTotalAmount = round(($current['price'] ) * 100);
                  $netTotalAmount =  round($current['price'] *  100);
-      
-                 
-                 
             }
             $shippingLine =  [
                     'reference' => $current['id'],
