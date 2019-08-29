@@ -16,7 +16,8 @@ class ShopifyApiExceptionHandler {
     }
     
     public function handle(\App\Exceptions\ShopifyApiException $e, array $add = null) {
-       $this->logger->error('\App\Exceptions\ShopifyApiException ' . $e->getMessage());
+       $errorLocation = ' File: ' . $e->getFile(). ' Line: ' . $e->getLine();
+       $this->logger->error('\App\Exceptions\ShopifyApiException ' . $e->getMessage() . $errorLocation);
        $this->logger->debug($add);
        return $e->getMessage();
     }

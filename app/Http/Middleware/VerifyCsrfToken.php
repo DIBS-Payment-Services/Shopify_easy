@@ -22,6 +22,8 @@ class VerifyCsrfToken extends Middleware
         'pay',
         'pay_t',
         'auth',
+        'void',
+        'void_t',
         'postForm',
         'callback',
         'capture',

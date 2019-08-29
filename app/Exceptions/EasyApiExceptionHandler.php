@@ -9,7 +9,6 @@ namespace App\Exceptions;
  */
 class EasyApiExceptionHandler {
     
-    
     private $logger;
     
     public function __construct(\Illuminate\Log\Logger $logger) {
@@ -17,9 +16,9 @@ class EasyApiExceptionHandler {
     }
     
     public function handle(\App\Exceptions\EasyException $e, array $add = null) {
-        
         $prefixMessage = 'Exception call to Easy Api. ';
         $message = '';
+        $errorLocation = ' File: ' . $e->getFile(). ' Line: ' . $e->getLine();
         switch($e->getCode()) {
                 case 400:
                    $message = 'Bad request: ' . $e->getMessage();
@@ -34,7 +33,7 @@ class EasyApiExceptionHandler {
                     $message = 'Unexpected error';
                 break;
         }
-        $this->logger->error($prefixMessage . $message);
+        $this->logger->error($prefixMessage . $message . $errorLocation);
         if($add) {
             $this->logger->debug($add);
         }

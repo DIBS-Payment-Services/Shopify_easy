@@ -13,5 +13,5 @@ interface EasyApiServiceInterface {
    
    public function chargePayment($pyamentId, $data);
    
-   public function refundPayment();
+   public function refundPayment($pyamentId, $data);
 }

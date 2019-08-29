@@ -56,13 +56,21 @@ class EasyApiService implements EasyApiServiceInterface{
     }
 
     public function chargePayment($paymentId, $data) {
-      $url = $this->getChargePaymentUrl($paymentId); 
+      $url = $this->getChargePaymentUrl($paymentId);
       $this->client->post($url, $data);
       $this->handleResponse($this->client);
     }
 
-    public function refundPayment() {
-        // todo
+    public function refundPayment($paymentId, $data) {
+      $url = $this->getRefundPaymentUrl($paymentId);
+      $this->client->post($url, $data);
+      $this->handleResponse($this->client);
+    }
+
+    public function voidPayment($paymentId, $data) {
+      $url = $this->getVoidPaymentUrl($paymentId);
+      $this->client->post($url, $data);
+      $this->handleResponse($this->client);
     }
 
     protected function handleResponse(\App\Service\Api\Client $client) {
@@ -105,4 +113,19 @@ class EasyApiService implements EasyApiServiceInterface{
         }
     }
 
+    public function getVoidPaymentUrl($paymentId) {
+        if($this->getEnv() == self::ENV_LIVE) {
+            return self::ENDPOINT_LIVE . $paymentId . '/cancels';
+        } else{
+            return self::ENDPOINT_TEST . $paymentId . '/cancels';
+        }
+    }
+
+    public function getRefundPaymentUrl($paymentId) {
+        if($this->getEnv() == self::ENV_LIVE) {
+            return self::ENDPOINT_LIVE . $paymentId . '/refunds';
+        } else{
+            return self::ENDPOINT_TEST . $paymentId . '/refunds';
+        }
+    }
 }

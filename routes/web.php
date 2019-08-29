@@ -21,6 +21,9 @@ Route::post('pay_t', 'PayTest');
 Route::post('capture', 'Capture');
 Route::post('capture_t', 'CaptureTest');
 
+Route::post('void', 'Cancel');
+Route::post('void_t', 'CancelTest');
+
 Route::post('postForm', 'MerchantSettings@store');
 Route::get('form', 'MerchantSettings@index');
 Route::get('return', 'Accept');
