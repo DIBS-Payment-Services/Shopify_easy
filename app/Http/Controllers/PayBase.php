@@ -93,7 +93,9 @@ class PayBase extends Controller {
            $params = ['checkout_id' => $checkout['id'],
                       'dibs_paymentid' => $result_decoded->paymentId, 
                       'shop_url' => $settingsCollection->first()->shop_url,
-                      'test' => static::ENV == 'test' ? 1 : 0];
+                      'test' => static::ENV == 'test' ? 1 : 0,
+                      'amount' => $request->get('x_amount'),
+                      'currency' => $request->get('x_currency')];
            $params['create_payment_items_params'] = json_encode($createPaymentParams['order']['items']);
            PaymentDetails::addOrUpdateDetails($params);
            session(['request_params' => json_encode($requestParams)]);

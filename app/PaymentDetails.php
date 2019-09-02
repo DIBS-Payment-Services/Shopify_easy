@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Model;
 class PaymentDetails extends Model {
     
     protected $table = 'payment_details';
-    protected $fillable = ['checkout_id', 'dibs_paymentid', 'shop_url', 'test', 'create_payment_items_params'];
+    protected $fillable = ['amount', 'currency', 'checkout_id', 'dibs_paymentid', 'shop_url', 'test', 'create_payment_items_params'];
 
     public static function getDetailsByCheckouId($checkoutId) {
        return self::query()->where('checkout_id', $checkoutId)->get();
