@@ -26,7 +26,17 @@ class PaymentDetails extends Model {
        return self::query()->where('dibs_paymentid', $paymentId)->get();
     }
 
-     public static function setCaptureRequestParams($checkoutid, $data) {
+    public static function setCaptureRequestParams($checkoutid, $data) {
         self::query()->where(['checkout_id' => $checkoutid])->update(['capture_request_params' => $data]);
     }
+
+    public static function persistRefundRequestParams($checkoutid, $data) {
+        self::query()->where(['checkout_id' => $checkoutid])->update(['refund_request_params' => $data]);
+    }
+
+    public static function persistCancelRequestParams($checkoutid, $data) {
+        self::query()->where(['checkout_id' => $checkoutid])->update(['cancel_request_params' => $data]);
+    }
+
+
 }

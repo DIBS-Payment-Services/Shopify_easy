@@ -11,16 +11,11 @@ use App\Service\EasyApiService;
 use App\CheckoutObject;
 use App\PaymentDetails;
 
-/**
- * Description of CancelBase
- *
- * @author mabe
- */
-class CancelBase extends Controller {
-
-    /**
-    * @var ShopifyApiService
-    */
+class RefundBase extends Controller
+{
+     /**
+     * @var ShopifyApiService
+     */
     private $shopifyApiService;
 
     /**
@@ -48,7 +43,6 @@ class CancelBase extends Controller {
                                 EasyApiService $easyApiService,
                                 ShopifyApiService $shopifyApiService,
                                 \Illuminate\Log\Logger $logger
-
             ) {
         $this->request = $request;
         $this->easyService = $easyService;
@@ -63,9 +57,9 @@ class CancelBase extends Controller {
         $this->logger = $logger;
     }
 
-
-    protected function handle() {
-        try{
+ 
+   protected function handle() {
+          try{
              $paymentDetails = PaymentDetails::getDetailsByPaymentId($this->request->get('x_gateway_reference'));
              $settingsCollection = MerchantSettings::getSettingsByShopUrl($paymentDetails->first()->shop_url);
              $params = $this->request->all();
@@ -79,24 +73,34 @@ class CancelBase extends Controller {
              if($this->request->get('x_signature') != $this->shopifyApiService->calculateSignature($params, $gatewayPassword)) {
                 throw new \App\Exceptions\ShopifyApiException('Singnature is wrong while trying to capture');
              }
-             $orderJson = $this->shopifyApiService->getOrder($settingsCollection->first()->access_token,
+             $orderJson = $this->shopifyApiService->getOrder($settingsCollection->first()->access_token, 
              $settingsCollection->first()->shop_url, $this->request->get('x_shopify_order_id'));
              $orderDecoded = json_decode($orderJson, true);
              $this->checkoutObject->setCheckout($orderDecoded['order']);
-             $data['amount'] = $this->checkoutObject->getAmount();
-             $data['orderItems'] = json_decode($paymentDetails->first()->create_payment_items_params, true);
-             PaymentDetails::persistCancelRequestParams($orderDecoded['order']['checkout_id'], json_encode($this->request->all()));
-             $this->easyApiService->voidPayment($this->request->get('x_gateway_reference'), json_encode($data));
+             PaymentDetails::persistRefundRequestParams($orderDecoded['order']['checkout_id'], json_encode($this->request->all()));
+             if(($this->request->get('x_amount') * 100) == $this->checkoutObject->getAmount()) {
+                 $data['amount'] = $this->checkoutObject->getAmount();
+                 $data['orderItems'] = json_decode($paymentDetails->first()->create_payment_items_params, true);
+             } else {
+                 $data['amount'] = $this->request->get('x_amount') * 100;
+                 $data['orderItems'][] = $this->easyService->getFakeOrderRow($this->request->get('x_amount'), 'refunded-ially1');
+             }
+              $lson = $this->easyApiService->getPayment($this->request->get('x_gateway_reference'));
+              $res = json_decode($lson,  true);
+              $charge = current($res['payment']['charges']);
+              $this->easyApiService->refundPayment($charge['chargeId'], json_encode($data));
          } catch(\App\Exceptions\ShopifyApiException $e) {
             $this->ehsh->handle($e, $this->request->all());
             return response('HTTP/1.0 500 Internal Server Error', 500);
          } catch(\App\Exceptions\EasyException $e) {
             $this->eh->handle($e);
             return response('HTTP/1.0 500 Internal Server Error', 500);
-         } catch(\Exception $e) {
+         }
+         catch(\Exception $e) {
             $this->handler->report($e);
             $this->logger->debug($this->request->all());
             return response('HTTP/1.0 500 Internal Server Error', 500);
          }
     }
+
 }

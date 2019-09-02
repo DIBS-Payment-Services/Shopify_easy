@@ -24,11 +24,15 @@ class VerifyCsrfToken extends Middleware
         'auth',
         'void',
         'void_t',
+        'refund',
+        'refund_t',
         'postForm',
         'callback',
         'capture',
         'capture_t',
         'order_created',
-        'charge_created'
+        'charge_created',
+        'cancel_hook',
+        'refund_hook'
     ];
 }

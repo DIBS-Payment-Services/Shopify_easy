@@ -113,16 +113,33 @@ class EasyService implements EasyServiceInterface {
              $callbackUrl = $this->request->get('x_url_callback');
              $x_reference = $this->request->get('x_reference');
              $shop_url = $settings['shop_url'];
+
              $reservationCreatedurl = "https://{$appUrl}/callback?callback_url={$callbackUrl}&x_reference={$x_reference}&shop_url={$shop_url}";
              $chargeCreatedHookUrl = "https://{$appUrl}/charge_created?x_reference={$x_reference}";
+             $refundCompletedWebhook = "https://{$appUrl}/refund_hook?x_reference={$x_reference}";
+             $cancelCompletedWebhook = "https://{$appUrl}/cancel_hook?x_reference={$x_reference}";
+
              $data['notifications'] = 
                  ['webhooks' => 
-                    [['eventName' => 'payment.reservation.created',
-                     'url' => $reservationCreatedurl,
-                     'authorization' => substr(str_shuffle(MD5(microtime())), 0, 10)],
+                    [
+                     ['eventName' => 'payment.reservation.created',
+                      'url' => $reservationCreatedurl,
+                      'authorization' => substr(str_shuffle(MD5(microtime())), 0, 10)],
+
                      ['eventName' => 'payment.charge.created',
-                     'url' => $chargeCreatedHookUrl,
-                     'authorization' => substr(str_shuffle(MD5(microtime())), 0, 10)]]
+                      'url' => $chargeCreatedHookUrl,
+                      'authorization' => substr(str_shuffle(MD5(microtime())), 0, 10)],
+
+                     ['eventName' => 'payment.refund.completed',
+                      'url' => $refundCompletedWebhook,
+                      'authorization' => substr(str_shuffle(MD5(microtime())), 0, 10)],
+
+                     ['eventName' => 'payment.cancel.created',
+                      'url' => $cancelCompletedWebhook,
+                      'authorization' => substr(str_shuffle(MD5(microtime())), 0, 10)]
+
+                     ]
+
                  ];
              $this->logger->debug($data);
              return $data;

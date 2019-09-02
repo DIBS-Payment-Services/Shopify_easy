@@ -24,6 +24,9 @@ Route::post('capture_t', 'CaptureTest');
 Route::post('void', 'Cancel');
 Route::post('void_t', 'CancelTest');
 
+Route::post('refund', 'Refund');
+Route::post('refund_t', 'RefundTest');
+
 Route::post('postForm', 'MerchantSettings@store');
 Route::get('form', 'MerchantSettings@index');
 Route::get('return', 'Accept');
@@ -34,7 +37,11 @@ Route::get('test', 'Test');
 
 Route::post('charge_created', 'ChargeCreatedEasyHook');
 Route::post('order_created', 'OrderCreatedHook');
+
 Route::post('charge_created', 'ChargeCreatedEasyHook');
+
+Route::post('refund_hook', 'RefundEasyHook');
+Route::post('cancel_hook', 'CancelEasyHook');
 
 Route::get('installinit', 'Index@install');
 Route::post('callback', 'Callback');

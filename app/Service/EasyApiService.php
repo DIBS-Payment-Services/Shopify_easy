@@ -8,15 +8,19 @@ namespace App\Service;
  * @author mabe
  */
 class EasyApiService implements EasyApiServiceInterface{
-    
+
     const ENDPOINT_TEST = 'https://test.api.dibspayment.eu/v1/payments/';
     const ENDPOINT_LIVE = 'https://api.dibspayment.eu/v1/payments/';
+
+    const ENDPOINT_TEST_CHARGES = 'https://test.api.dibspayment.eu/v1/charges/';
+    const ENDPOINT_LIVE_CHARGES = 'https://api.dibspayment.eu/v1/charges/';
+
     const ENV_LIVE = 'live';
     const ENV_TEST = 'test';
-    
+
     private $client;
     private $env;
-    
+
     public function __construct(\App\Service\Api\Client $client) {
       $this->client = $client;
       $this->client->setHeader('Content-Type', 'text/json');
@@ -27,7 +31,7 @@ class EasyApiService implements EasyApiServiceInterface{
     public function setEnv($env = self::ENV_LIVE) {
         $this->env = $env;
     }
-    
+
     public function getEnv() {
         return $this->env;
     }
@@ -61,8 +65,8 @@ class EasyApiService implements EasyApiServiceInterface{
       $this->handleResponse($this->client);
     }
 
-    public function refundPayment($paymentId, $data) {
-      $url = $this->getRefundPaymentUrl($paymentId);
+    public function refundPayment($chargeId, $data) {
+      $url = $this->getRefundPaymentUrl($chargeId);
       $this->client->post($url, $data);
       $this->handleResponse($this->client);
     }
@@ -121,11 +125,11 @@ class EasyApiService implements EasyApiServiceInterface{
         }
     }
 
-    public function getRefundPaymentUrl($paymentId) {
+    public function getRefundPaymentUrl($chargeId) {
         if($this->getEnv() == self::ENV_LIVE) {
-            return self::ENDPOINT_LIVE . $paymentId . '/refunds';
+            return self::ENDPOINT_LIVE_CHARGES . $chargeId . '/refunds';
         } else{
-            return self::ENDPOINT_TEST . $paymentId . '/refunds';
+            return self::ENDPOINT_TEST_CHARGES . $chargeId . '/refunds';
         }
     }
 }
