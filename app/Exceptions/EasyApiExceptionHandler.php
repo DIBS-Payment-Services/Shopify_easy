@@ -8,13 +8,13 @@ namespace App\Exceptions;
  * @author mabe
  */
 class EasyApiExceptionHandler {
-    
+
     private $logger;
-    
+
     public function __construct(\Illuminate\Log\Logger $logger) {
         $this->logger = $logger;
     }
-    
+
     public function handle(\App\Exceptions\EasyException $e, array $add = null) {
         $prefixMessage = 'Exception call to Easy Api. ';
         $message = '';
@@ -38,5 +38,23 @@ class EasyApiExceptionHandler {
             $this->logger->debug($add);
         }
        return $message;
+    }
+
+    /**
+     * Parse json error message and fetch error message readable for users
+     * 
+     * @param string $msgJson
+     */
+    public function parseError( $msgJson ) {
+       $msgArr = json_decode($msgJson, true);
+       $errorStr = '';
+       if(isset($msgArr['errors'])) {
+          foreach($msgArr['errors'] as $k => $v) {
+              foreach( $v as $error ) {
+                   $errorStr .= $error ;
+              }
+          }
+       }
+       return $errorStr;
     }
 }

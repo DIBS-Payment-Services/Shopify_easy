@@ -18,12 +18,19 @@ class Pay extends PayBase implements LiveEnv
             return $this->startPayment($request);
         }catch(\App\Exceptions\EasyException $e) {
            $this->easyApiExceptionHandler->handle($e, $request->all());
-        }catch(\App\Exceptions\ShopifyApiException $e ) {
+           if($e->getCode() == 400) {
+              $parsedErrorMessage = $this->easyApiExceptionHandler->parseError($e->getMessage());
+           }
+        }catch(\App\Exceptions\ShopifyApiException $e) {
             $this->shopifyApiExceptionHandler->handle($e);
         }
         catch(\Exception $e) {
             $this->logger->error($e->getMessage());
         }
-        return $this->showErrorPage('Error ocurred...');
+        $errorMsg = '';
+        if(isset($parsedErrorMessage) ) {
+            $errorMsg = $parsedErrorMessage;
+        }
+        return $this->showErrorPage('Error ocurred...' . $errorMsg);
     }
 }
