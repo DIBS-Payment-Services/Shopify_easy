@@ -1,13 +1,11 @@
 <?php
 
-
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Service\ShopifyApiService;
 use App\MerchantSettings;
 use App\Service\EasyApiService;
-
 
 /**
  * Description of AcceptBase
@@ -32,12 +30,10 @@ class AcceptBase extends Controller {
     private $shopifyReturnParams;
     protected $easyApiService;
     protected $shopifyApiService;
-    
-    
+
     public function __construct(EasyApiService $easyApiService, 
                                 ShopifyApiService $shopifyApiService, 
-                                Request $request, \Illuminate\Log\Logger $logger, 
-                                \App\Service\Api\Client $client, 
+                                Request $request,
                                 \App\Exceptions\EasyApiExceptionHandler $eh,
                                 \App\ShopifyReturnParams $shopifyReturnParams) {
         $this->easyApiService = $easyApiService;
@@ -51,19 +47,13 @@ class AcceptBase extends Controller {
         try{
             $requestInitialParams = json_decode(session('request_params'), true);
             $settingsCollection = MerchantSettings::getSettingsByShopUrl($requestInitialParams['shop']);
-            
             $keyField = static::KEY;
             $key = ShopifyApiService::decryptKey($settingsCollection->first()->$keyField);
-                        
             $this->easyApiService->setAuthorizationKey($key);
             $this->easyApiService->setEnv(static::ENV);
             $paymentDetailsJson = $this->easyApiService->getPayment($requestInitialParams['paymentId']);
-            
-            $paymentDetailsList = json_decode($paymentDetailsJson);
-            
-            if(!empty($paymentDetailsList->payment->summary->reservedAmount)) {
-                $params['url'] = $this->request->get('x_url_complete');
-                $requestInitialParams = json_decode(session('request_params'), true);
+            $paymentDetailsObj = json_decode($paymentDetailsJson);
+            if(!empty($paymentDetailsObj->payment->summary->reservedAmount)) {
                 $this->shopifyReturnParams->setX_Amount($requestInitialParams['x_amount']);
                 $this->shopifyReturnParams->setX_Currency( $requestInitialParams['x_currency']);
                 $this->shopifyReturnParams->setX_GatewayReference($requestInitialParams['paymentId']);
@@ -72,41 +62,31 @@ class AcceptBase extends Controller {
                 $this->shopifyReturnParams->setX_Timestamp(date("Y-m-d\TH:i:s\Z"));
                 $this->shopifyReturnParams->setX_TransactionType('authorization');
                 $this->shopifyReturnParams->setX_AccountId($requestInitialParams['x_account_id']);
-                $this->easyApiService->setAuthorizationKey($key);
-                $this->easyApiService->setEnv(static::ENV);
-                $resultJson = json_decode($this->easyApiService->getPayment($requestInitialParams['paymentId']));
-                $cardType = '';
-                $maskedPan = '';
-                if(!empty($resultJson->payment->paymentDetails) && !empty($resultJson->payment->paymentDetails->paymentType)) {
-                    if($resultJson->payment->paymentDetails->paymentType == 'CARD') {
-                       if(!empty($resultJson->payment->paymentDetails->paymentMethod)) {
-                           $cardType = $resultJson->payment->paymentDetails->paymentMethod;
+                if(!empty($paymentDetailsObj->payment->paymentDetails->paymentType) &&
+                          $paymentDetailsObj->payment->paymentDetails->paymentType == 'CARD') {
+                       if(!empty($paymentDetailsObj->payment->paymentDetails->paymentMethod)) {
+                           $this->shopifyReturnParams->setX_CardType($paymentDetailsObj->payment->paymentDetails->paymentMethod);
                        }
-
-                       if(!empty($resultJson->payment->paymentDetails->cardDetails->maskedPan)) {
-                           $maskedPan = $resultJson->payment->paymentDetails->cardDetails->maskedPan;
+                       if(!empty($paymentDetailsObj->payment->paymentDetails->cardDetails->maskedPan)) {
+                          $this->shopifyReturnParams->setX_CardMaskedPan($paymentDetailsObj->payment->paymentDetails->cardDetails->maskedPan);
                        }
-
-                    }
                 }
-                $this->shopifyReturnParams->setX_CardType($cardType);
-                $this->shopifyReturnParams->setX_CardMaskedPan($maskedPan);
                 if($requestInitialParams['x_test'] == 'true') {
                     $this->shopifyReturnParams->setX_Test();
                 }
-                $pass = $requestInitialParams['gateway_password'];
-                $signature = $this->shopifyApiService->calculateSignature($this->shopifyReturnParams->getParams(), $pass);
+                $signature = $this->shopifyApiService->calculateSignature($this->shopifyReturnParams->getParams(), $requestInitialParams['gateway_password']);
                 $this->shopifyReturnParams->setX_Signature($signature);
                 $params['params'] = $this->shopifyReturnParams->getParams();
+                $params['url'] = $this->request->get('x_url_complete');
                 return view('easy-accept', $params);
             } else {
                 return redirect($requestInitialParams['x_url_cancel']);
             }
         } catch (\App\Exceptions\EasyException $e) {
               $this->eh->handle($e, $this->request->all());
+              return response('HTTP/1.0 500 Internal Server Error', 500);
         } catch(\Exception $e) {
-              echo $e->getMessage();
-               return response('HTTP/1.0 500 Internal Server Error', 500);
+              return response('HTTP/1.0 500 Internal Server Error', 500);
         }
     }
 }
