@@ -8,13 +8,13 @@ namespace App\Service;
  */
 interface ShopifyApiServiceInterface {
     
-    public function auth($request);
+    public function auth(\Illuminate\Http\Request $request);
     
     public function getShopInfo($acessToken, $shop);
     
-    public function getCheckoutById($acessToken, $shop ,$checkoutId);
+    public function getCheckoutById(string $acessToken, string $shop , string $checkoutId);
     
-    public function getOrder($acessToken, $shopUrl, $orderId);
+    public function getOrder(string $acessToken, string $shopUrl, string $orderId);
     
-    public function paymentCallback($url, $params, $type = null);
+    public function paymentCallback(string $url, array $params, string $type = null);
 }

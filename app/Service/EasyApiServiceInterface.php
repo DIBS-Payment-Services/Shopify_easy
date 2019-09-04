@@ -7,11 +7,11 @@ namespace App\Service;
  * @author mabe
  */
 interface EasyApiServiceInterface {
-   public function getPayment($paymentId);
+   public function getPayment(string $paymentId);
    
-   public function createPayment($data);
-   
-   public function chargePayment($pyamentId, $data);
-   
-   public function refundPayment($pyamentId, $data);
+   public function createPayment(string $data);
+
+   public function chargePayment(string $pyamentId, string $data);
+
+   public function refundPayment(string $pyamentId, string $data);
 }

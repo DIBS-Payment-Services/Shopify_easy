@@ -51,9 +51,8 @@ class AcceptBase extends Controller {
             $key = ShopifyApiService::decryptKey($settingsCollection->first()->$keyField);
             $this->easyApiService->setAuthorizationKey($key);
             $this->easyApiService->setEnv(static::ENV);
-            $paymentDetailsJson = $this->easyApiService->getPayment($requestInitialParams['paymentId']);
-            $paymentDetailsObj = json_decode($paymentDetailsJson);
-            if(!empty($paymentDetailsObj->payment->summary->reservedAmount)) {
+            $payment = $this->easyApiService->getPayment($requestInitialParams['paymentId']);
+            if(!empty($payment->getReservedAmount())) {
                 $this->shopifyReturnParams->setX_Amount($requestInitialParams['x_amount']);
                 $this->shopifyReturnParams->setX_Currency( $requestInitialParams['x_currency']);
                 $this->shopifyReturnParams->setX_GatewayReference($requestInitialParams['paymentId']);
@@ -62,14 +61,10 @@ class AcceptBase extends Controller {
                 $this->shopifyReturnParams->setX_Timestamp(date("Y-m-d\TH:i:s\Z"));
                 $this->shopifyReturnParams->setX_TransactionType('authorization');
                 $this->shopifyReturnParams->setX_AccountId($requestInitialParams['x_account_id']);
-                if(!empty($paymentDetailsObj->payment->paymentDetails->paymentType) &&
-                          $paymentDetailsObj->payment->paymentDetails->paymentType == 'CARD') {
-                       if(!empty($paymentDetailsObj->payment->paymentDetails->paymentMethod)) {
-                           $this->shopifyReturnParams->setX_CardType($paymentDetailsObj->payment->paymentDetails->paymentMethod);
-                       }
-                       if(!empty($paymentDetailsObj->payment->paymentDetails->cardDetails->maskedPan)) {
-                          $this->shopifyReturnParams->setX_CardMaskedPan($paymentDetailsObj->payment->paymentDetails->cardDetails->maskedPan);
-                       }
+                if($payment->getPaymentType() == 'CARD') {
+                    $cardDetails = $payment->getCardDetails();
+                    $this->shopifyReturnParams->setX_CardType($payment->getPaymentMethod());
+                    $this->shopifyReturnParams->setX_CardMaskedPan($cardDetails['maskedPan']);
                 }
                 if($requestInitialParams['x_test'] == 'true') {
                     $this->shopifyReturnParams->setX_Test();

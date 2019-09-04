@@ -2,6 +2,8 @@
 
 namespace App\Service;
 
+use \Illuminate\Http\Request;
+
 class ShopifyApiService  implements ShopifyApiServiceInterface{
 
     const OAUTH_ACCESS_TOKEN_URL = '/admin/oauth/access_token';
@@ -21,7 +23,7 @@ class ShopifyApiService  implements ShopifyApiServiceInterface{
      * @param Request $request
      * @return string|null
      */
-    public function auth($request) {
+    public function auth(Request $request) {
        $shop = $request->get('shop');
        $apiKey = env('SHOPIFY_API_KEY');
        $apiSecret = env('SHOPIFY_API_SECRET');
@@ -52,7 +54,7 @@ class ShopifyApiService  implements ShopifyApiServiceInterface{
      * @param string $shopUrl
      * @return string|null
      */
-    public function getOrder($acessToken, $shopUrl, $orderId) {
+    public function getOrder(string $acessToken, string $shopUrl, string $orderId) {
         $this->client->setHeader('X-Shopify-Access-Token', $acessToken);
         $url = $this->getOrderUrl($shopUrl, $orderId);
         $this->client->get($url);
@@ -66,7 +68,7 @@ class ShopifyApiService  implements ShopifyApiServiceInterface{
      * @param string $checkoutId
      * @return array
      */
-    public function getCheckoutById($acessToken, $shopUrl ,$checkoutId) {
+    public function getCheckoutById(string $acessToken, string $shopUrl, string $checkoutId) {
         $this->client->setHeader('X-Shopify-Access-Token', $acessToken);
         $filter = $checkoutId - 1;
         $url = $this->getCheckoutsUrl($shopUrl). "?since_id=$filter";
@@ -85,17 +87,17 @@ class ShopifyApiService  implements ShopifyApiServiceInterface{
      * @param string $url
      * @param array $params
      */
-    public function paymentCallback($url, $params, $type = null) {
+    public function paymentCallback(string $url, array $params, string $type = null) {
         $this->client->post($url, $params);
         $this->handleResponse($this->client);
     }
 
     /**
      * 
-     * @param type $params
+     * @param array $params
      * @return array
      */
-    public function calculateSignature($params, $gatewayPassword) {
+    public function calculateSignature(array $params, string $gatewayPassword) {
         $request = $params;
         $requestArr = array();
         foreach($request as $key => $value) {
@@ -111,7 +113,7 @@ class ShopifyApiService  implements ShopifyApiServiceInterface{
         return hash_hmac('sha256', $message, $gatewayPassword);
    }
 
-   public function registerOrederCreatedHook($acessToken, $shopUrl) {
+   public function registerOrederCreatedHook(string $acessToken, string $shopUrl) {
        $url = $this->getRegisterOrderWebhookUrl($shopUrl);
        $this->client->setHeader('X-Shopify-Access-Token', $acessToken);
        $appUrl = env('SHOPIFY_APP_URL');
@@ -125,38 +127,35 @@ class ShopifyApiService  implements ShopifyApiServiceInterface{
        }
    }
 
-   public static function encryptKey($data) {
+   public static function encryptKey(string $data) {
         return openssl_encrypt($data, 'AES-128-ECB', env('EASY_KEY_SALT'));
    }
 
-   public static function decryptKey($encryptedData) {
+   public static function decryptKey(string $encryptedData) {
         return openssl_decrypt($encryptedData, 'AES-128-ECB', env('EASY_KEY_SALT'));
    }
 
-   private function getCheckoutsUrl($shopUrl) {
+   private function getCheckoutsUrl(string $shopUrl) {
       return str_replace('api_version', env('SHOPIFY_API_VERSION') ,
               'https://' . $shopUrl . self::API_CHECKOUTS_URL);
-      
    }
 
-   private function getShopUrl($shopUrl) {
+   private function getShopUrl(string $shopUrl) {
       return str_replace('api_version', env('SHOPIFY_API_VERSION') ,
               'https://' . $shopUrl . self::API_SHOP_URL);
-      
    }
 
-   private function getOrderUrl($shopUrl, $order_id) {
+   private function getOrderUrl(string $shopUrl, string $order_id) {
       return str_replace(['api_version', 'order_id'], [env('SHOPIFY_API_VERSION'), $order_id] ,
               'https://' . $shopUrl . self::API_ORDER_URL);
-      
    }
 
-   private function getOrderCheckoutUrl($shopUrl) {
+   private function getOrderCheckoutUrl(string $shopUrl) {
        return str_replace('api_version', env('SHOPIFY_API_VERSION') ,
               'https://' . $shopUrl . '/admin/api/api_version/orders.json' );
    }
 
-   private function getRegisterOrderWebhookUrl($shopUrl) {
+   private function getRegisterOrderWebhookUrl(string $shopUrl) {
        return str_replace('api_version', env('SHOPIFY_API_VERSION') ,
               'https://' . $shopUrl . '/admin/api/2019-04/webhooks.json' );
    }
@@ -168,5 +167,4 @@ class ShopifyApiService  implements ShopifyApiServiceInterface{
           throw new \App\Exceptions\ShopifyApiException($client->getResponse(), $client->getHttpStatus());
       }
    }
-
 }

@@ -35,8 +35,6 @@ class Callback extends Controller
     public function __invoke(Request $request, \App\ShopifyReturnParams $shopifyReturnParams, EasyApiService $easyApiService)
     {
         try{
-            error_log('callback_received12121');
-         
             $data = $request->get('data');
             $shopifyReturnParams->setX_AccountId($request->get('merchantId'));
             $shopifyReturnParams->setX_Amount($data['amount']['amount'] / 100);
@@ -59,25 +57,16 @@ class Callback extends Controller
             }
             $secret_key = $this->shopifyApiService->decryptKey($secret_key);
             $easyApiService->setAuthorizationKey($secret_key);
-            $resultJson = json_decode($easyApiService->getPayment($data['paymentId']));
-            $cardType = '';
-            $maskedPan = '';
-            if(!empty($resultJson->payment->paymentDetails) && !empty($resultJson->payment->paymentDetails->paymentType)) {
-                if($resultJson->payment->paymentDetails->paymentType == 'CARD') {
-                   if(!empty($resultJson->payment->paymentDetails->paymentMethod)) {
-                       $cardType = $resultJson->payment->paymentDetails->paymentMethod;
-                   }
-                   if(!empty($resultJson->payment->paymentDetails->cardDetails->maskedPan)) {
-                       $maskedPan = $resultJson->payment->paymentDetails->cardDetails->maskedPan;
-                   }
-                }
+            $payment = $easyApiService->getPayment($data['paymentId']);
+            if( $payment->getPaymentType() == 'CARD') {
+                   $cardDetails = $payment->getCardDetails();
+                   $shopifyReturnParams->setX_CardType($payment->getPaymentMethod());
+                   $shopifyReturnParams->setX_CardMaskedPan($cardDetails['maskedPan']);
             }
-            $shopifyReturnParams->setX_CardType($cardType);
-            $shopifyReturnParams->setX_CardMaskedPan($maskedPan);
             $signature = $this->shopifyApiService->calculateSignature($shopifyReturnParams->getParams(), $ms->first()->gateway_password);
             $shopifyReturnParams->setX_Signature($signature);
             $this->shopifyApiService->paymentCallback($request->get('callback_url'), $shopifyReturnParams->getParams());
-        }catch(\App\Exceptions\ShopifyApiException $e) {
+         }catch(\App\Exceptions\ShopifyApiException $e) {
             $this->shopifyApiExceptionHandler->handle($e);
             return response('HTTP/1.0 500 Internal Server Error', 500);
         } 

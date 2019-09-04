@@ -46,11 +46,10 @@ class OrderCreatedHook extends Controller{
                 $easyApiService->setEnv(EasyApiService::ENV_LIVE);
             }
             $easyApiService->setAuthorizationKey($key);
-            $paymentJson = $easyApiService->getPayment($paymentId);
-            $paymentObj = json_decode($paymentJson);
-            $jsonData = json_encode(['reference' => $request->get('name'), 'checkoutUrl' => $paymentObj->payment->checkout->url]);
+            $payment = $easyApiService->getPayment($paymentId);
+            $jsonData = json_encode(['reference' => $request->get('name'), 
+                                     'checkoutUrl' => $payment->getCheckoutUrl()]);
             $easyApiService->updateReference($paymentId, $jsonData);
-
         } catch(\App\Exceptions\EasyException $e ) {
            $eh->handle($e);
            return response('HTTP/1.0 500 Internal Server Error', 500);

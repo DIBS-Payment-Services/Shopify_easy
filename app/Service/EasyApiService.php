@@ -28,7 +28,7 @@ class EasyApiService implements EasyApiServiceInterface{
       $this->setEnv(self::ENV_LIVE);
     }
 
-    public function setEnv($env = self::ENV_LIVE) {
+    public function setEnv(string $env = self::ENV_LIVE) {
         $this->env = $env;
     }
 
@@ -36,42 +36,52 @@ class EasyApiService implements EasyApiServiceInterface{
         return $this->env;
     }
 
-    public function setAuthorizationKey($key) {
+    public function setAuthorizationKey(string $key) {
       $this->client->setHeader('Authorization', str_replace('-', '', trim($key)));
     }
 
-    public function createPayment($data) {
+    /**
+     * 
+     * @param string $data
+     * @return type
+     */
+    public function createPayment(string $data) {
       $this->client->setHeader('commercePlatformTag:', 'easy_shopify_inject');
       $url = $this->getCreatePaymentUrl();  
       $this->client->post($url, $data);
       return $this->handleResponse($this->client);
     }
 
-    public function getPayment($paymentId) {
+    /**
+     * 
+     * @param string $paymentId
+     * @return \App\Payment
+     */
+    public function getPayment(string $paymentId) {
       $url = $this->getGetPaymentUrl($paymentId); 
       $this->client->get($url);
-      return $this->handleResponse($this->client);
+      return new \App\Payment($this->handleResponse($this->client));
     }
 
-   public function updateReference($paymentId, $data) {
+   public function updateReference(string $paymentId, string $data) {
       $url = $this->getUpdateReferenceUrl($paymentId); 
       $this->client->put($url, $data, true);
       $this->handleResponse($this->client);
     }
 
-    public function chargePayment($paymentId, $data) {
+    public function chargePayment(string $paymentId, string $data) {
       $url = $this->getChargePaymentUrl($paymentId);
       $this->client->post($url, $data);
       $this->handleResponse($this->client);
     }
 
-    public function refundPayment($chargeId, $data) {
+    public function refundPayment(string $chargeId, string $data) {
       $url = $this->getRefundPaymentUrl($chargeId);
       $this->client->post($url, $data);
       $this->handleResponse($this->client);
     }
 
-    public function voidPayment($paymentId, $data) {
+    public function voidPayment(string $paymentId, string $data) {
       $url = $this->getVoidPaymentUrl($paymentId);
       $this->client->post($url, $data);
       $this->handleResponse($this->client);
@@ -86,50 +96,37 @@ class EasyApiService implements EasyApiServiceInterface{
     }
 
     protected function getCreatePaymentUrl() {
-        if($this->getEnv() == self::ENV_LIVE) {
-            return self::ENDPOINT_LIVE;
-        } else{
-            return self::ENDPOINT_TEST;
-        }
+       return ($this->getEnv() == self::ENV_LIVE) ?
+               self::ENDPOINT_LIVE : self::ENDPOINT_TEST;
     }
 
-    protected function getGetPaymentUrl($paymentId) {
-        if($this->getEnv() == self::ENV_LIVE) {
-            return self::ENDPOINT_LIVE . $paymentId;
-        } else{
-            return self::ENDPOINT_TEST . $paymentId;
-        }
+    protected function getGetPaymentUrl(string $paymentId) {
+        return ($this->getEnv() == self::ENV_LIVE) ?
+                self::ENDPOINT_LIVE . $paymentId:
+                self::ENDPOINT_TEST . $paymentId;
     }
 
-    public function getUpdateReferenceUrl($paymentId) {
-        if($this->getEnv() == self::ENV_LIVE) {
-            return self::ENDPOINT_LIVE . $paymentId .'/referenceinformation';
-        } else{
-            return self::ENDPOINT_TEST . $paymentId .'/referenceinformation';
-        }
+    public function getUpdateReferenceUrl(string $paymentId) {
+        return ($this->getEnv() == self::ENV_LIVE) ?
+                self::ENDPOINT_LIVE . $paymentId .'/referenceinformation':
+                self::ENDPOINT_TEST . $paymentId .'/referenceinformation';
     }
 
-    public function getChargePaymentUrl($paymentId) {
-        if($this->getEnv() == self::ENV_LIVE) {
-            return self::ENDPOINT_LIVE . $paymentId . '/charges';
-        } else{
-            return self::ENDPOINT_TEST . $paymentId . '/charges';
-        }
+    public function getChargePaymentUrl(string $paymentId) {
+        return ($this->getEnv() == self::ENV_LIVE) ?
+            self::ENDPOINT_LIVE . $paymentId . '/charges':
+            self::ENDPOINT_TEST . $paymentId . '/charges';
     }
 
-    public function getVoidPaymentUrl($paymentId) {
-        if($this->getEnv() == self::ENV_LIVE) {
-            return self::ENDPOINT_LIVE . $paymentId . '/cancels';
-        } else{
-            return self::ENDPOINT_TEST . $paymentId . '/cancels';
-        }
+    public function getVoidPaymentUrl(string $paymentId) {
+        return ($this->getEnv() == self::ENV_LIVE) ? 
+                self::ENDPOINT_LIVE . $paymentId . '/cancels':
+                self::ENDPOINT_TEST . $paymentId . '/cancels';
     }
 
-    public function getRefundPaymentUrl($chargeId) {
-        if($this->getEnv() == self::ENV_LIVE) {
-            return self::ENDPOINT_LIVE_CHARGES . $chargeId . '/refunds';
-        } else{
-            return self::ENDPOINT_TEST_CHARGES . $chargeId . '/refunds';
-        }
+    public function getRefundPaymentUrl(string $chargeId) {
+        return ($this->getEnv() == self::ENV_LIVE) ? 
+               self::ENDPOINT_LIVE_CHARGES . $chargeId . '/refunds':
+               self::ENDPOINT_TEST_CHARGES . $chargeId . '/refunds';
     }
 }

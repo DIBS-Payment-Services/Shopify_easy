@@ -80,6 +80,8 @@ class PayBase extends Controller {
 
       $filedName = static::KEY;
       $key = ShopifyApiService::decryptKey($settingsCollection->first()->$filedName);
+      
+      
       $this->easyApiService->setAuthorizationKey($key);
       $this->easyApiService->setEnv(static::ENV);
 

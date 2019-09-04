@@ -63,6 +63,10 @@ class ShopifyReturnParams {
         $this->params['x_card_masked_pan'] = $field;
     }
 
+    /**
+     * 
+     * @return array
+     */
     public function getParams() {
         return $this->params;
     }

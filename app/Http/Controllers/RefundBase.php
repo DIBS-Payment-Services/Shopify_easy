@@ -83,12 +83,12 @@ class RefundBase extends Controller
                  $data['orderItems'] = json_decode($paymentDetails->first()->create_payment_items_params, true);
              } else {
                  $data['amount'] = $this->request->get('x_amount') * 100;
-                 $data['orderItems'][] = $this->easyService->getFakeOrderRow($this->request->get('x_amount'), 'refunded-ially1');
+                 $data['orderItems'][] = $this->easyService->getFakeOrderRow($this->request->get('x_amount'), 'refunded-partially');
              }
-              $lson = $this->easyApiService->getPayment($this->request->get('x_gateway_reference'));
-              $res = json_decode($lson,  true);
-              $charge = current($res['payment']['charges']);
-              $this->easyApiService->refundPayment($charge['chargeId'], json_encode($data));
+              $payment = $this->easyApiService->getPayment($this->request->get('x_gateway_reference'));
+              
+              $this->easyApiService->refundPayment($payment->getFirstChargeId(), json_encode($data));
+         
          } catch(\App\Exceptions\ShopifyApiException $e) {
             $this->ehsh->handle($e, $this->request->all());
             return response('HTTP/1.0 500 Internal Server Error', 500);
