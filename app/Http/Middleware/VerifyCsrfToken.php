@@ -26,7 +26,6 @@ class VerifyCsrfToken extends Middleware
         'void_t',
         'refund',
         'refund_t',
-        'postForm',
         'callback',
         'capture',
         'capture_t',

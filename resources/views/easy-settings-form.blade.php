@@ -18,7 +18,8 @@
                                 terms_and_conditions_url: "{{ $terms_and_conditions_url }}",
                                 actionUrl: "{{ $action_url }}",
                                 installGatewayRedirect: "{{ $install_gateway_redirect }}",
-                                shop_url: "{{ $shop_origin }}"};
+                                shop_url: "{{ $shop_origin }}",
+                                csrf_token: "{{ csrf_token() }}"};
     </script>  
     <script type="text/javascript" src="{{ asset('js/bundle.js') }} "></script>
     <script type="text/javascript" src="{{ asset('public/js/bundle.js') }}"></script>

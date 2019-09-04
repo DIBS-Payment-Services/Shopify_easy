@@ -34,7 +34,6 @@ class MerchantSettings extends Controller
             $params['shop_origin'] = session('shop_url');
             $params['action_url'] = 'https://' . env('SHOPIFY_APP_URL') . '/postForm';
             $params['install_gateway_redirect'] = env('EASY_GATEWAY_INSTALL_URL');
-            
             return view('easy-settings-form', $params);
         }
     }
@@ -58,10 +57,9 @@ class MerchantSettings extends Controller
         // TODO validation!
         $validator = Validator::make($data, $rules);
         if ($validator->passes()) {
-            error_log('passed');
+            \App\MerchantSettings::saveShopSettings($request);
         } else {
-            error_log('failed');
+            //error_log('failed');
         }
-        \App\MerchantSettings::saveShopSettings($request);
     }
 }
