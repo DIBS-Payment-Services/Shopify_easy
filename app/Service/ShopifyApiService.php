@@ -127,11 +127,11 @@ class ShopifyApiService  implements ShopifyApiServiceInterface{
        }
    }
 
-   public static function encryptKey(string $data) {
+   public static function encryptKey($data) {
         return openssl_encrypt($data, 'AES-128-ECB', env('EASY_KEY_SALT'));
    }
 
-   public static function decryptKey(string $encryptedData) {
+   public static function decryptKey($encryptedData) {
         return openssl_decrypt($encryptedData, 'AES-128-ECB', env('EASY_KEY_SALT'));
    }
 

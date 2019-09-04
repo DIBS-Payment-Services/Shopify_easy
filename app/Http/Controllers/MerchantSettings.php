@@ -3,10 +3,10 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+
 use App\Service\ShopifyApiService;
 
 use Validator;
-
 
 class MerchantSettings extends Controller
 {
