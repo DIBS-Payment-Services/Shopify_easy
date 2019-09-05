@@ -27,7 +27,7 @@
                       <div style="margin-left : 40%;">  
                         <img src="https://tech.dibspayment.com/sites/tech/files/pictures/LOGO/DIBS/PNG/DIBS_Easy_Logo_pos_Black.png" width="170" height="66">  
                       </div>
-                      <form action = "/installinit" >
+                      <form action = "/installinit">
                         <div class="Polaris-FormLayout">
                         <div class="Polaris-FormLayout__Item">
                             <div class="">
@@ -35,7 +35,7 @@
                                 <div class="Polaris-Label"><label id="TextField1Label" for="TextField1" class="Polaris-Label__Text">Your shop url: <b>https://your-shop.myshopify.com </b></label></div>
                               </div>
                               <div class="Polaris-TextField Polaris-TextField--@if ($errors->any())error @endif">
-                                <input id="TextField1" class="Polaris-TextField__Input" aria-describedby="TextField1HelpText" aria-invalid="false"  placeholder="https://your-shop.myshopify.com">
+                                <input id="TextField1" class="Polaris-TextField__Input" aria-describedby="TextField1HelpText" aria-invalid="false" name="shop"  placeholder="https://your-shop.myshopify.com">
                                 <div class="Polaris-TextField__Backdrop"></div>
                               </div>
                               <div class="Polaris-Labelled__HelpText" id="TextField1HelpText"><span>  Enter your Shopify URL address in order to start installing Easy. Click <a class="Polaris-Link"  href="https://www.youtube.com/watch?v=yqMVqmoO3BM" target="_blank">HERE</a> to see our video guide.  </span></div>
