@@ -17,7 +17,7 @@ class EasyApiExceptionHandler {
 
     public function handle(\App\Exceptions\EasyException $e, array $add = null) {
         $prefixMessage = 'Exception call to Easy Api. ';
-        $message = '';
+        $message = ' Response code : ' . $e->getCode();
         $errorLocation = ' File: ' . $e->getFile(). ' Line: ' . $e->getLine();
         switch($e->getCode()) {
                 case 400:

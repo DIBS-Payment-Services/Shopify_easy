@@ -14,6 +14,6 @@ interface EasyServiceInterface {
      * @param array $checkout
      * @return array
      */
-    public function generateRequestParams($settings, \App\CheckoutObject $checkoutObject);
+    public function generateRequestParams(array $settings, \App\CheckoutObject $checkoutObject);
     
 }

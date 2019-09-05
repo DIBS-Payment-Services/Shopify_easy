@@ -20,7 +20,7 @@ class EasyService implements EasyServiceInterface {
         $this->logger = $logger;
     }
 
-    public function generateRequestParams($settings, \App\CheckoutObject $checkoutObject): array {
+    public function generateRequestParams(array $settings, \App\CheckoutObject $checkoutObject): array {
           $data = [
             'order' => [
                 'items' => $this->getRequestObjectItems($checkoutObject),
@@ -237,7 +237,6 @@ class EasyService implements EasyServiceInterface {
                 $price += $tax['price'];
             }
         return $price;
-        
     }
 
     protected function getTaxRate($item) {
@@ -246,7 +245,6 @@ class EasyService implements EasyServiceInterface {
                 $rate += $tax['rate'];
             }
         return $rate;
-        
     }
 
     protected function getDiscountAmount(\App\CheckoutObject $checkoutObject) {
@@ -268,7 +266,6 @@ class EasyService implements EasyServiceInterface {
                 'taxAmount' => 0,
                 'grossTotalAmount' => -round($amount * 100),
                 'netTotalAmount' => -round($amount * 100)];
-
     }
     
     protected function taxRow($amount) {
@@ -282,10 +279,8 @@ class EasyService implements EasyServiceInterface {
                 'taxAmount' => 0,
                 'grossTotalAmount' => round($amount * 100),
                 'netTotalAmount' => round($amount * 100)];
-
     }
     
-
     public function getFakeOrderRow($amount, $name) {
          return [
                 'reference' => md5($amount . $name),
@@ -297,7 +292,6 @@ class EasyService implements EasyServiceInterface {
                 'taxAmount' => 0,
                 'grossTotalAmount' =>$amount * 100,
                 'netTotalAmount' => $amount * 100];
-
     }
 
 }

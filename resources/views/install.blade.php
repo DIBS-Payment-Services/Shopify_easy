@@ -1,138 +1,55 @@
 <!doctype html>
 <html>
+
+
+    <style> 
+        
+      #footer {
+           position:absolute;
+           bottom:0;
+           width:100%;
+           height:60px;   /* Height of the footer */
+     }
+        
+    </style> 
+
     <body>
         <div id="install-form">
-            <img src="https://tech.dibspayment.com/sites/tech/files/pictures/LOGO/DIBS/PNG/DIBS_Easy_Logo_pos_Black.png" width="170" height="66">
-            <form  action="/installinit"> 
-               <input id="shop-url-input" name="shop" class="@if ($errors->any()) danger @endif" placeholder="https://your-shop.myshopify.com" type="text" width="135" />
-               <input type="submit"  class="btn primary" value="Submit">
-           </form>
-            Enter your Shopify URL address in order to start installing Easy. Click 
-                <a href="https://drive.google.com/file/d/1FrdMi0DIBrP8sEW6_laFH0VvhcxKAHyj/view">HERE</a> 
-            to see our video guide
-      </div>
+            <link rel="stylesheet" href="https://unpkg.com/@shopify/polaris@4.1.0/styles.min.css" />
+        </div>
+        <div style="--top-bar-background:#00848e; --top-bar-color:#f9fafb; --top-bar-background-lighter:#1d9ba4;">
+          <div class="Polaris-Page">
+             <div class="Polaris-Page__Content" style="padding-top:25%;">
+              <div class="Polaris-Layout">
+                <div class="Polaris-Layout__AnnotatedSection">
+                  <div class="Polaris-Layout__AnnotationWrapper">
+                    <div class="Polaris-Layout__AnnotationContent">
+                      <div style="margin-left : 40%;">  
+                        <img src="https://tech.dibspayment.com/sites/tech/files/pictures/LOGO/DIBS/PNG/DIBS_Easy_Logo_pos_Black.png" width="170" height="66">  
+                      </div>
+                      <form action = "/installinit" >
+                        <div class="Polaris-FormLayout">
+                        <div class="Polaris-FormLayout__Item">
+                            <div class="">
+                              <div class="Polaris-Labelled__LabelWrapper">
+                                <div class="Polaris-Label"><label id="TextField1Label" for="TextField1" class="Polaris-Label__Text">Your shop url: <b>https://your-shop.myshopify.com </b></label></div>
+                              </div>
+                              <div class="Polaris-TextField Polaris-TextField--@if ($errors->any())error @endif">
+                                <input id="TextField1" class="Polaris-TextField__Input" aria-describedby="TextField1HelpText" aria-invalid="false"  placeholder="https://your-shop.myshopify.com">
+                                <div class="Polaris-TextField__Backdrop"></div>
+                              </div>
+                              <div class="Polaris-Labelled__HelpText" id="TextField1HelpText"><span>  Enter your Shopify URL address in order to start installing Easy. Click <a class="Polaris-Link"  href="https://www.youtube.com/watch?v=yqMVqmoO3BM" target="_blank">HERE</a> to see our video guide.  </span></div>
+                            </div>
+                          </div>
+                         <div class="Polaris-FormLayout__Item"><button type="submit" class="Polaris-Button Polaris-Button--primary"> <span class="Polaris-Button__Content"><span class="Polaris-Button__Text">Submit</span></span></button></div>
+                        </div><span class="Polaris-VisuallyHidden"><button class="Polaris-Button Polaris-Button--primary" type="submit" aria-hidden="true">Submit</button></span>
+                     </form>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
     </body>
-        <style>
-            body {
-                text-align: center;
-                 background: #ebeef0;
-            }
-            .danger {
-                border: 1px solid;
-                border-color: red;
-            }
-            #install-form {
-               margin:0 auto; 
-               margin-top: 20%;
-               width: 50%;
-            }
-            #shop-url-input {
-                width: 35%;
-                height: 35px;
-            }
-            
-            
-            
-         .btn {
-            -moz-box-sizing: border-box;
-            box-sizing: border-box;
-            cursor: pointer;
-            display: inline-block;
-            height: 32px;
-            line-height: 30px;
-            padding: 0 15px;
-            font-size: 13px;
-            border-radius: 4px;
-            text-decoration: none;
-            white-space: nowrap;
-            text-transform: none;
-            vertical-align: middle;
-            -webkit-appearance: none;
-            margin: 0;
-        }
-
-    .btn:active {
-        box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2) inset;
-    }
-
-    /* modifier: primary */
-    .btn.primary {
-        background-color: #479ccf;
-        border: 1px solid #479ccf;
-        color: #FFFFFF;
-    }
-
-    .btn.primary:hover, .btn.primary:active {
-        background-color: #4293C2;
-        border: #479ccf 1px solid;
-        color: #FFFFFF;
-        text-decoration: none;
-    }
-
-    /* modifier: disabled */
-
-    .btn.disabled, .btn.disabled:hover, .btn.disabled:focus, .btn.disabled:active, .btn.disabled:link, .btn.disabled:visited {
-        cursor: default;
-        box-shadow: none;
-        background: #fafbfc;
-        color: #c3cfd8;
-        border: 1px solid #d3dbe2;
-        text-decoration: none;
-    }
-
-
-
-
-    input {
-        border-radius: 3px;
-        height: 32px;
-        margin-bottom: 15px;
-        max-width: 100%;
-        font-size: 13px;
-        padding-left: 10px;
-        padding-right: 10px;
-        border: 1px solid #ccc;
-        box-sizing: border-box;
-        -moz-box-sizing: border-box;
-    }
-
-    input[type=text] {
-        width: 100%;
-        font-size: 15px;
-    }
-
-    input {
-        height: 28px;
-    }
-
-    input::-webkit-input-placeholder {
-       color: #c3cfd8;
-    }
-
-    input:-moz-placeholder { /* Firefox 18- */
-       color: #c3cfd8;
-    }
-
-    input::-moz-placeholder {  /* Firefox 19+ */
-       color: #c3cfd8;
-    }
-
-    input:-ms-input-placeholder {
-       color: #c3cfd8;
-    }
-
-    input[type=radio], input[type=checkbox] {
-        float: left;
-        height: auto;
-        line-height: 1;
-        width: auto;
-        max-width: none;
-        margin: 0 10px 5px 0;
-        border: none;
-        padding: 0;
-        vertical-align: baseline;
-        display: inline-block;
-    }
-        
-        </style>
 </html>
