@@ -16,24 +16,27 @@ class EasyApiExceptionHandler {
     }
 
     public function handle(\App\Exceptions\EasyException $e, array $add = null) {
-        $prefixMessage = 'Exception call to Easy Api. ';
-        $message = ' Response code : ' . $e->getCode();
-        $errorLocation = ' File: ' . $e->getFile(). ' Line: ' . $e->getLine();
+        $prefixMessage = 'Exception call to Easy Api. ' . PHP_EOL;
+        $stackTrace = 'Stack trace: ' . PHP_EOL . $e->getTraceAsString();
+        $message = 'Response code:  ' . $e->getCode() . PHP_EOL . 'Message: ';
         switch($e->getCode()) {
                 case 400:
-                   $message = 'Bad request: ' . $e->getMessage();
+                   $message .= 'Bad request: ' . $e->getMessage();
                 break;
                 case 401:
-                    $message = 'Unauthorized access. Try to check Easy secret/live key';
+                    $message .= 'Unauthorized access. Try to check Easy secret/live key';
+                break;
+                case 402:
+                    $message .= 'Payment required';
                 break;
                 case 404:
-                    $message = 'Payment or charge not found';
+                    $message .= 'Payment or charge not found';
                 break;
                 case 500:
-                    $message = 'Unexpected error';
+                    $message .= 'Unexpected error';
                 break;
         }
-        $this->logger->error($prefixMessage . $message . $errorLocation);
+        $this->logger->error($prefixMessage . $message . PHP_EOL . $stackTrace);
         if($add) {
             $this->logger->debug($add);
         }
