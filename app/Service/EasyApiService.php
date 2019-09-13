@@ -18,7 +18,12 @@ class EasyApiService implements EasyApiServiceInterface{
     const ENV_LIVE = 'live';
     const ENV_TEST = 'test';
 
+    /**
+     *
+     * @var \App\Service\Api\Client
+     */
     private $client;
+
     private $env;
 
     public function __construct(\App\Service\Api\Client $client) {
@@ -43,13 +48,13 @@ class EasyApiService implements EasyApiServiceInterface{
     /**
      * 
      * @param string $data
-     * @return type
+     * @return \App\Service\Api\Client
      */
     public function createPayment(string $data) {
       $this->client->setHeader('commercePlatformTag:', 'easy_shopify_inject');
       $url = $this->getCreatePaymentUrl();  
       $this->client->post($url, $data);
-      return $this->handleResponse($this->client);
+      return $this->client;
     }
 
     /**

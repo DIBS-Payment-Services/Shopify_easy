@@ -66,8 +66,22 @@ class PayBase extends Controller {
       $this->easyApiService->setEnv(static::ENV);
       $this->checkoutObject->setCheckout($checkout);
       $createPaymentParams = $this->easyService->generateRequestParams($settings, $this->checkoutObject);
+
       $result = $this->easyApiService->createPayment(json_encode($createPaymentParams));
-      $createPaymentResult = json_decode($result);
+      if($result->getHttpStatus() == 400) {
+          $errorObject = json_decode($result->getResponse(), true);
+          foreach ($errorObject['errors'] as $key=>$value) {
+              // if postal code is not valid try to create checkout withput postal code
+              if('checkout.Consumer.ShippingAddress.PostalCode' == $key) {
+                  unset($createPaymentParams['checkout']['merchantHandlesConsumerData']);
+              }
+          }
+          $result = $this->easyApiService->createPayment(json_encode($createPaymentParams));
+      }
+      if( !$result->isSuccess() ) {
+          throw new \App\Exceptions\EasyException($result->getResponse(), $result->getHttpStatus());
+      }
+      $createPaymentResult = json_decode($result->getResponse());
       $requestParams = $request->all();
       $requestParams['paymentId'] = $createPaymentResult->paymentId;
       $requestParams['gateway_password'] = $settings['gateway_password'];
