@@ -171,7 +171,7 @@ class EasyService implements EasyServiceInterface {
                }
                $items[] = array(
                     'reference' => $item['product_id'],
-                    'name' => str_replace(array('\'', '&'), '', $item['title']),
+                    'name' => str_replace(array('\'', '&'), '', $this->trimProductName($item['title'])),
                     'quantity' => $item['quantity'],
                     'unit' => 'pcs',
                     'unitPrice' => $unitPrice,
@@ -217,7 +217,7 @@ class EasyService implements EasyServiceInterface {
             }
             $shippingLine =  [
                     'reference' => $current['id'],
-                    'name' => str_replace(array('\'', '&'), '', $current['title']),
+                    'name' => str_replace(array('\'', '&'), '', $this->trimProductName($current['title'])),
                     'quantity' => 1,
                     'unit' => 'pcs',
                     'unitPrice' => $unitPrice,
@@ -292,6 +292,10 @@ class EasyService implements EasyServiceInterface {
                 'taxAmount' => 0,
                 'grossTotalAmount' =>$amount * 100,
                 'netTotalAmount' => $amount * 100];
+    }
+
+    protected function trimProductName(string $productName) {
+        return substr($productName, 0, 128);
     }
 
 }
