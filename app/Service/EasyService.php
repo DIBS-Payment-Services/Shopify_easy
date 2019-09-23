@@ -170,7 +170,7 @@ class EasyService implements EasyServiceInterface {
 
                }
                $items[] = array(
-                    'reference' => $item['product_id'],
+                    'reference' => !empty($item['product_id']) ? $item['product_id']: md5($item['title']),
                     'name' => str_replace(array('\'', '&'), '', $this->trimProductName($item['title'])),
                     'quantity' => $item['quantity'],
                     'unit' => 'pcs',
@@ -216,7 +216,7 @@ class EasyService implements EasyServiceInterface {
                  $netTotalAmount =  round($current['price'] *  100);
             }
             $shippingLine =  [
-                    'reference' => $current['id'],
+                    'reference' => !empty($current['id']) ? $current['id'] : md5($current['title']),
                     'name' => str_replace(array('\'', '&'), '', $this->trimProductName($current['title'])),
                     'quantity' => 1,
                     'unit' => 'pcs',
