@@ -32,50 +32,6 @@ class EasyService implements EasyServiceInterface {
                 ],
            ];
 
-           // consumers data
-           $firstName = ($checkoutObject->getCustomerFirstName()) ? $checkoutObject->getCustomerFirstName() : 'FirstName';
-           $lastName = ($checkoutObject->getcustomerLastName()) ? $checkoutObject->getcustomerLastName() : 'LastName';
-
-           $iso2countryCode = $checkoutObject->getIso2countryCode();
-           $res = DirectoryCountry::getCountry($iso2countryCode)->first();
-           $iso3countryCode = $res->iso3_code;
-
-           $consumerData = [
-                'email' => $checkoutObject->getCustomerEmail(),
-                 'shippingAddress' => [
-                            'addressLine1' =>  $checkoutObject->getAddressLine1(),
-                            'addressLine2' =>  $checkoutObject->getAddressLine2(),
-                            'postalCode' =>  $checkoutObject->getPostalCode(),
-                            'city' =>  $checkoutObject->getCity(),
-                            'country' =>  $iso3countryCode],
-                 'privatePerson' => [
-                            'firstName' => $firstName,
-                            'lastName' => $lastName]
-            ];
-
-            $phone = null;
-
-            if(!empty($checkoutObject->getCustomerPhone())) {
-              $phone = $checkoutObject->getCustomerPhone();
-            } 
-            if(!empty($checkoutObject->getBillinAddresPhone())){
-               $phone = $checkoutObject->getBillinAddresPhone();
-            }
-            if(!empty($checkoutObject->getShippingAddresPhone())){
-               $phone = $checkoutObject->getShippingAddresPhone();
-            }
-
-            $phone = str_replace([' ', '-', '(', ')'], '', $phone);
-
-            if(preg_match('/\+[0-9]{7,18}$/', $phone) ) {
-               $phonePrefix = substr($phone, 0, 3);
-               $number = substr($phone, 3);
-               $consumerData['phoneNumber'] = ['prefix' => $phonePrefix, 'number' => $number];
-            }
-
-            $data['checkout']['consumer'] = $consumerData;
-            $data['checkout']['merchantHandlesConsumerData'] = true;
-
             // b2b or b2bc 
             if(trim($settings['allowed_customer_type'])) {
                     switch($settings['allowed_customer_type']) {
@@ -103,6 +59,52 @@ class EasyService implements EasyServiceInterface {
                    $consumerType = ['supportedTypes' => $supportedTypes,
                                     'default' => $default];
                    $data['checkout']['consumerType'] = $consumerType;
+
+                   if('b2c' == $settings['allowed_customer_type']) {
+                       // consumers data
+                       $firstName = ($checkoutObject->getCustomerFirstName()) ? $checkoutObject->getCustomerFirstName() : 'FirstName';
+                       $lastName = ($checkoutObject->getcustomerLastName()) ? $checkoutObject->getcustomerLastName() : 'LastName';
+                       $iso2countryCode = $checkoutObject->getIso2countryCode();
+                       $res = DirectoryCountry::getCountry($iso2countryCode)->first();
+                       $iso3countryCode = $res->iso3_code;
+
+                       $consumerData = [
+                            'email' => $checkoutObject->getCustomerEmail(),
+                             'shippingAddress' => [
+                                        'addressLine1' =>  $checkoutObject->getAddressLine1(),
+                                        'addressLine2' =>  $checkoutObject->getAddressLine2(),
+                                        'postalCode' =>  $checkoutObject->getPostalCode(),
+                                        'city' =>  $checkoutObject->getCity(),
+                                        'country' =>  $iso3countryCode],
+                             'privatePerson' => [
+                                        'firstName' => $firstName,
+                                        'lastName' => $lastName]
+                        ];
+
+                        $phone = null;
+
+                        if(!empty($checkoutObject->getCustomerPhone())) {
+                          $phone = $checkoutObject->getCustomerPhone();
+                        } 
+                        if(!empty($checkoutObject->getBillinAddresPhone())){
+                           $phone = $checkoutObject->getBillinAddresPhone();
+                        }
+                        if(!empty($checkoutObject->getShippingAddresPhone())){
+                           $phone = $checkoutObject->getShippingAddresPhone();
+                        }
+
+                        $phone = str_replace([' ', '-', '(', ')'], '', $phone);
+
+                        if(preg_match('/\+[0-9]{7,18}$/', $phone) ) {
+                           $phonePrefix = substr($phone, 0, 3);
+                           $number = substr($phone, 3);
+                           $consumerData['phoneNumber'] = ['prefix' => $phonePrefix, 'number' => $number];
+                        }
+
+                        $data['checkout']['consumer'] = $consumerData;
+                        $data['checkout']['merchantHandlesConsumerData'] = true;
+                   }
+ 
              }
 
              $x_url_complete = $this->request->get('x_url_complete');
