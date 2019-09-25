@@ -37,8 +37,8 @@ class Callback extends Controller
         try{
             $data = $request->get('data');
             $shopifyReturnParams->setX_AccountId($request->get('merchantId'));
-            $shopifyReturnParams->setX_Amount($data['amount']['amount'] / 100);
-            $shopifyReturnParams->setX_Currency($data['amount']['currency']);
+            $shopifyReturnParams->setX_Amount($data['order']['amount']['amount'] / 100);
+            $shopifyReturnParams->setX_Currency($data['order']['amount']['currency']);
             $shopifyReturnParams->setX_GatewayReference($data['paymentId']);
             $shopifyReturnParams->setX_Reference($request->get('x_reference'));
             $shopifyReturnParams->setX_Result('completed');
@@ -66,12 +66,12 @@ class Callback extends Controller
             $signature = $this->shopifyApiService->calculateSignature($shopifyReturnParams->getParams(), $ms->first()->gateway_password);
             $shopifyReturnParams->setX_Signature($signature);
             $this->shopifyApiService->paymentCallback($request->get('callback_url'), $shopifyReturnParams->getParams());
-         }catch(\App\Exceptions\ShopifyApiException $e) {
+        }catch(\App\Exceptions\ShopifyApiException $e) {
             $this->shopifyApiExceptionHandler->handle($e);
             return response('HTTP/1.0 500 Internal Server Error', 500);
         } 
-        catch( \Exception $e) {
-            return response('HTTP/1.0 500 Internal Server Error', 500);
+        catch(\Exception $e) {
+           return response('HTTP/1.0 500 Internal Server Error', 500);
         }
     }
 }
