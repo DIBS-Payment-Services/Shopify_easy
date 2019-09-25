@@ -63,6 +63,10 @@ class ShopifyReturnParams {
         $this->params['x_card_masked_pan'] = $field;
     }
 
+    public function setX_PaymentType($field) {
+        $this->params['x_payment_type'] = $field;
+    }
+
     /**
      * 
      * @return array
@@ -70,5 +74,4 @@ class ShopifyReturnParams {
     public function getParams() {
         return $this->params;
     }
-
 }

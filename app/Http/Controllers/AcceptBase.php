@@ -52,7 +52,7 @@ class AcceptBase extends Controller {
             $this->easyApiService->setAuthorizationKey($key);
             $this->easyApiService->setEnv(static::ENV);
             $payment = $this->easyApiService->getPayment($requestInitialParams['paymentId']);
-            if(!empty($payment->getReservedAmount())) {
+            if(!empty($payment->getPaymentType())) {
                 $this->shopifyReturnParams->setX_Amount($requestInitialParams['x_amount']);
                 $this->shopifyReturnParams->setX_Currency( $requestInitialParams['x_currency']);
                 $this->shopifyReturnParams->setX_GatewayReference($requestInitialParams['paymentId']);
@@ -66,6 +66,7 @@ class AcceptBase extends Controller {
                     $this->shopifyReturnParams->setX_CardType($payment->getPaymentMethod());
                     $this->shopifyReturnParams->setX_CardMaskedPan($cardDetails['maskedPan']);
                 }
+                $this->shopifyReturnParams->setX_PaymentType($payment->getPaymentType());
                 if($requestInitialParams['x_test'] == 'true') {
                     $this->shopifyReturnParams->setX_Test();
                 }

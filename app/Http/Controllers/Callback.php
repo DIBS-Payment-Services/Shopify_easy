@@ -58,6 +58,7 @@ class Callback extends Controller
             $secret_key = $this->shopifyApiService->decryptKey($secret_key);
             $easyApiService->setAuthorizationKey($secret_key);
             $payment = $easyApiService->getPayment($data['paymentId']);
+            $shopifyReturnParams->setX_PaymentType($payment->getPaymentType());
             if( $payment->getPaymentType() == 'CARD') {
                    $cardDetails = $payment->getCardDetails();
                    $shopifyReturnParams->setX_CardType($payment->getPaymentMethod());
