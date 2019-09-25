@@ -59,52 +59,46 @@ class EasyService implements EasyServiceInterface {
                    $consumerType = ['supportedTypes' => $supportedTypes,
                                     'default' => $default];
                    $data['checkout']['consumerType'] = $consumerType;
-
                    if('b2c' == $settings['allowed_customer_type']) {
                        // consumers data
-                       $firstName = ($checkoutObject->getCustomerFirstName()) ? $checkoutObject->getCustomerFirstName() : 'FirstName';
-                       $lastName = ($checkoutObject->getcustomerLastName()) ? $checkoutObject->getcustomerLastName() : 'LastName';
-                       $iso2countryCode = $checkoutObject->getIso2countryCode();
-                       $res = DirectoryCountry::getCountry($iso2countryCode)->first();
-                       $iso3countryCode = $res->iso3_code;
-
-                       $consumerData = [
-                            'email' => $checkoutObject->getCustomerEmail(),
-                             'shippingAddress' => [
-                                        'addressLine1' =>  $checkoutObject->getAddressLine1(),
-                                        'addressLine2' =>  $checkoutObject->getAddressLine2(),
-                                        'postalCode' =>  $checkoutObject->getPostalCode(),
-                                        'city' =>  $checkoutObject->getCity(),
-                                        'country' =>  $iso3countryCode],
-                             'privatePerson' => [
-                                        'firstName' => $firstName,
-                                        'lastName' => $lastName]
-                        ];
-
-                        $phone = null;
-
-                        if(!empty($checkoutObject->getCustomerPhone())) {
-                          $phone = $checkoutObject->getCustomerPhone();
-                        } 
-                        if(!empty($checkoutObject->getBillinAddresPhone())){
-                           $phone = $checkoutObject->getBillinAddresPhone();
-                        }
-                        if(!empty($checkoutObject->getShippingAddresPhone())){
-                           $phone = $checkoutObject->getShippingAddresPhone();
-                        }
-
-                        $phone = str_replace([' ', '-', '(', ')'], '', $phone);
-
-                        if(preg_match('/\+[0-9]{7,18}$/', $phone) ) {
-                           $phonePrefix = substr($phone, 0, 3);
-                           $number = substr($phone, 3);
-                           $consumerData['phoneNumber'] = ['prefix' => $phonePrefix, 'number' => $number];
-                        }
-
-                        $data['checkout']['consumer'] = $consumerData;
-                        $data['checkout']['merchantHandlesConsumerData'] = true;
+                       if($this->customerAddressValidation($checkoutObject)) {
+                           $firstName = ($checkoutObject->getCustomerFirstName()) ? $checkoutObject->getCustomerFirstName() : 'FirstName';
+                           $lastName = ($checkoutObject->getcustomerLastName()) ? $checkoutObject->getcustomerLastName() : 'LastName';
+                           $iso2countryCode = $checkoutObject->getIso2countryCode();
+                           $res = DirectoryCountry::getCountry($iso2countryCode)->first();
+                           $iso3countryCode = $res->iso3_code;
+                           $consumerData = [
+                                'email' => $checkoutObject->getCustomerEmail(),
+                                 'shippingAddress' => [
+                                            'addressLine1' =>  $checkoutObject->getAddressLine1(),
+                                            'addressLine2' =>  $checkoutObject->getAddressLine2(),
+                                            'postalCode' =>  $checkoutObject->getPostalCode(),
+                                            'city' =>  $checkoutObject->getCity(),
+                                            'country' =>  $iso3countryCode],
+                                 'privatePerson' => [
+                                            'firstName' => $firstName,
+                                            'lastName' => $lastName]
+                            ];
+                            $phone = null;
+                            if(!empty($checkoutObject->getCustomerPhone())) {
+                              $phone = $checkoutObject->getCustomerPhone();
+                            } 
+                            if(!empty($checkoutObject->getBillinAddresPhone())){
+                               $phone = $checkoutObject->getBillinAddresPhone();
+                            }
+                            if(!empty($checkoutObject->getShippingAddresPhone())){
+                               $phone = $checkoutObject->getShippingAddresPhone();
+                            }
+                            $phone = str_replace([' ', '-', '(', ')'], '', $phone);
+                            if(preg_match('/\+[0-9]{7,18}$/', $phone) ) {
+                               $phonePrefix = substr($phone, 0, 3);
+                               $number = substr($phone, 3);
+                               $consumerData['phoneNumber'] = ['prefix' => $phonePrefix, 'number' => $number];
+                            }
+                            $data['checkout']['consumer'] = $consumerData;
+                            $data['checkout']['merchantHandlesConsumerData'] = true;
+                       }
                    }
- 
              }
 
              $x_url_complete = $this->request->get('x_url_complete');
@@ -115,12 +109,10 @@ class EasyService implements EasyServiceInterface {
              $callbackUrl = $this->request->get('x_url_callback');
              $x_reference = $this->request->get('x_reference');
              $shop_url = $settings['shop_url'];
-
              $reservationCreatedurl = "https://{$appUrl}/callback?callback_url={$callbackUrl}&x_reference={$x_reference}&shop_url={$shop_url}";
              $chargeCreatedHookUrl = "https://{$appUrl}/charge_created?x_reference={$x_reference}";
              $refundCompletedWebhook = "https://{$appUrl}/refund_hook?x_reference={$x_reference}";
              $cancelCompletedWebhook = "https://{$appUrl}/cancel_hook?x_reference={$x_reference}";
-
              $data['notifications'] = 
                  ['webhooks' => 
                     [
@@ -300,4 +292,19 @@ class EasyService implements EasyServiceInterface {
         return substr($productName, 0, 128);
     }
 
+    /**
+     *
+     * @param \App\CheckoutObject $checkoutObject
+     * @return boolean
+     */
+    protected function customerAddressValidation(\App\CheckoutObject $checkoutObject) {
+        if(!empty($checkoutObject->getIso2countryCode())  &&
+           !empty($checkoutObject->getPostalCode())  &&
+           (!empty( $checkoutObject->getAddressLine1()) ||
+           !empty($checkoutObject->getAddressLine2()))) {
+              return true;
+          } else {
+              return false;
+          }
+    }
 }

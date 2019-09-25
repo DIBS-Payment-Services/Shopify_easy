@@ -24,47 +24,65 @@ class CheckoutObject {
     }
 
     public function getIso2countryCode() {
-        return isset($this->checkout['shipping_address']['country_code']) ?
-                     $this->checkout['shipping_address']['country_code'] :
-                     $this->checkout['billing_address']['country_code'];
-
+        if(!empty($this->checkout['shipping_address']['country_code'])) {
+            return $this->checkout['shipping_address']['country_code'];
+        }
+        if(!empty($this->checkout['billing_address']['country_code'])) {
+            return $this->checkout['billing_address']['country_code'];
+        }
     }
 
     public function getCustomerPhone() {
-        return $this->checkout['customer']['phone'];
+        return isset($this->checkout['customer']['phone'])
+                    ? $this->checkout['customer']['phone'] : null;
     }
 
     public function getShippingAddresPhone() {
-        return isset($this->checkout['shipping_address']['phone']) ?
-                     $this->checkout['shipping_address']['phone'] : null;
+        if(!empty($this->checkout['shipping_address']['phone'])) {
+            return $this->checkout['shipping_address']['phone'];
+        }
     }
 
     public function getBillinAddresPhone() {
-        return $this->checkout['billing_address']['phone'];
+        if(!empty($this->checkout['billing_address']['phone'])) {
+            return $this->checkout['billing_address']['phone'];
+        }
     }
 
     public function getAddressLine1() {
-        return isset($this->checkout['shipping_address']['address1']) ?
-                     $this->checkout['shipping_address']['address1'] :
-                     $this->checkout['billing_address']['address1'];
+        if(!empty($this->checkout['shipping_address']['address1'])) {
+            return $this->checkout['shipping_address']['address1'];
+        }
+        if(!empty($this->checkout['billing_address']['address1'])) {
+            return $this->checkout['billing_address']['address1'];
+        }
     }
 
     public function getAddressLine2() {
-        return isset($this->checkout['shipping_address']['address2']) ?
-                     $this->checkout['shipping_address']['address2'] :
-                     $this->checkout['billing_address']['address2'];
+        if(!empty($this->checkout['shipping_address']['address2'])) {
+            return $this->checkout['shipping_address']['address2'];
+        }
+        if(!empty($this->checkout['billing_address']['address2'])) {
+             return $this->checkout['billing_address']['address2'];
+        }
     }
 
     public function getPostalCode() {
-        return isset($this->checkout['shipping_address']['zip']) ?
-                     $this->checkout['shipping_address']['zip'] :
-                     $this->checkout['billing_address']['zip'];
-    }
+        if(!empty($this->checkout['shipping_address']['zip'])) {
+            return $this->checkout['shipping_address']['zip'];
+        }
+        if(!empty($this->checkout['billing_address']['zip'])) {
+            return $this->checkout['billing_address']['zip'];
+        }
+   }
 
     public function getCity() {
-        return isset($this->checkout['shipping_address']['city']) ?
-                     $this->checkout['shipping_address']['city'] :
-                     $this->checkout['billing_address']['city'];
+        if(!empty($this->checkout['shipping_address']['city'])) {
+            return $this->checkout['shipping_address']['city'];
+        }
+        if(!empty($this->checkout['billing_address']['city'])) {
+            return $this->checkout['billing_address']['city'];
+        }
     }
 
     public function getCustomerEmail() {
