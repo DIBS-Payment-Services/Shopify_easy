@@ -78,8 +78,9 @@ class PayBase extends Controller {
           }
           $result = $this->easyApiService->createPayment(json_encode($createPaymentParams));
       }
-      if( !$result->isSuccess() ) {
-          throw new \App\Exceptions\EasyException($result->getResponse(), $result->getHttpStatus());
+      if(!$result->isSuccess()) {
+          $errorMessage = $result->getHttpStatus()? $result->getResponse() : $result->getErrorMessage();
+          throw new \App\Exceptions\EasyException($errorMessage, $result->getHttpStatus());
       }
       $createPaymentResult = json_decode($result->getResponse());
       $requestParams = $request->all();

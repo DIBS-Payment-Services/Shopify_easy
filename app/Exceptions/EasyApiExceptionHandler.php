@@ -35,7 +35,11 @@ class EasyApiExceptionHandler {
                 case 500:
                     $message .= 'Unexpected error';
                 break;
+                case 0:
+                    $message .= 'Curl error: ' . $e->getMessage();
+                break;
         }
+
         $this->logger->error($prefixMessage . $message . PHP_EOL . $stackTrace);
         if($add) {
             $this->logger->debug($add);

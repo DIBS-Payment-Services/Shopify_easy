@@ -42,8 +42,18 @@ class Client {
     public function put($url, $data = array(), $payload = false) {
         return $this->client->put($url, $data, $payload);
     }
-    
+
     public function getHttpStatus() {
         return $this->client->getHttpStatus();
+    }
+
+    public function getErrorCode()
+    {
+        return $this->client->getErrorCode();
+    }
+
+    public function getErrorMessage()
+    {
+        return $this->client->getErrorMessage();
     }
 }

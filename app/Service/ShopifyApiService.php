@@ -164,7 +164,8 @@ class ShopifyApiService  implements ShopifyApiServiceInterface{
       if($client->isSuccess()) {
           return $client->getResponse();
       } else {
-          throw new \App\Exceptions\ShopifyApiException($client->getResponse(), $client->getHttpStatus());
+          $errorMessage = $client->getHttpStatus() ? $client->getResponse() : $client->getErrorMessage();
+          throw new \App\Exceptions\ShopifyApiException($errorMessage, $client->getHttpStatus());
       }
    }
 }

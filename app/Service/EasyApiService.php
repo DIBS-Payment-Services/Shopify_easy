@@ -96,7 +96,11 @@ class EasyApiService implements EasyApiServiceInterface{
       if($client->isSuccess()) {
           return $client->getResponse();
       } else {
-          throw new \App\Exceptions\EasyException($client->getResponse(), $client->getHttpStatus());
+          $errorMessage = $client->getResponse();
+          if(0 == $client->getHttpStatus()) {
+              $errorMessage = $client->getErrorMessage();
+          }
+          throw new \App\Exceptions\EasyException($errorMessage, $client->getHttpStatus());
       }
     }
 
