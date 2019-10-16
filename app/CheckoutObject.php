@@ -16,7 +16,7 @@ class CheckoutObject {
     }
 
     public function getAmount() {
-        return round($this->checkout['total_price'] * 100);
+        return (int)round($this->checkout['total_price'] * 100);
     }
 
     public function getCurrency() {

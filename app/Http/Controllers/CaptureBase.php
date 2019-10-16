@@ -88,15 +88,14 @@ class CaptureBase extends Controller {
              $settingsCollection->first()->shop_url, $this->request->get('x_shopify_order_id'));
              $orderDecoded = json_decode($orderJson, true);
              $this->checkoutObject->setCheckout($orderDecoded['order']);
-             
              PaymentDetails::setCaptureRequestParams($orderDecoded['order']['checkout_id'], json_encode($this->request->all()));
-             
-             if(($this->request->get('x_amount') * 100) == $this->checkoutObject->getAmount()) {
+
+             if($this->easyService::formatEasyAmount($this->request->get('x_amount')) == $this->checkoutObject->getAmount()) {
                  $data['amount'] = $this->checkoutObject->getAmount();
                  $data['orderItems'] = json_decode($paymentDetails->first()->create_payment_items_params, true);
              } else {
-                 $data['amount'] = $this->request->get('x_amount') * 100;
-                 $data['orderItems'][] = $this->easyService->getFakeOrderRow($this->request->get('x_amount'), 'captured-partially1');
+                 $data['amount'] = $this->easyService::formatEasyAmount($this->request->get('x_amount'));
+                 $data['orderItems'][] = $this->easyService->getFakeOrderRow($this->easyService::formatEasyAmount($this->request->get('x_amount')), 'captured-partially1');
              }
              $this->easyApiService->chargePayment($this->request->get('x_gateway_reference'), json_encode($data));
          } catch(\App\Exceptions\ShopifyApiException $e) {

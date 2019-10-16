@@ -57,7 +57,6 @@ class RefundBase extends Controller
         $this->logger = $logger;
     }
 
- 
    protected function handle() {
           try{
              $paymentDetails = PaymentDetails::getDetailsByPaymentId($this->request->get('x_gateway_reference'));
@@ -78,17 +77,15 @@ class RefundBase extends Controller
              $orderDecoded = json_decode($orderJson, true);
              $this->checkoutObject->setCheckout($orderDecoded['order']);
              PaymentDetails::persistRefundRequestParams($orderDecoded['order']['checkout_id'], json_encode($this->request->all()));
-             if(($this->request->get('x_amount') * 100) == $this->checkoutObject->getAmount()) {
+             if($this->easyService::formatEasyAmount($this->request->get('x_amount')) == $this->checkoutObject->getAmount()) {
                  $data['amount'] = $this->checkoutObject->getAmount();
                  $data['orderItems'] = json_decode($paymentDetails->first()->create_payment_items_params, true);
              } else {
-                 $data['amount'] = $this->request->get('x_amount') * 100;
-                 $data['orderItems'][] = $this->easyService->getFakeOrderRow($this->request->get('x_amount'), 'refunded-partially');
+                 $data['amount'] = $this->easyService::formatEasyAmount($this->request->get('x_amount'));
+                 $data['orderItems'][] = $this->easyService->getFakeOrderRow($this->easyService::formatEasyAmount($this->request->get('x_amount')), 'refunded-partially');
              }
-              $payment = $this->easyApiService->getPayment($this->request->get('x_gateway_reference'));
-              
-              $this->easyApiService->refundPayment($payment->getFirstChargeId(), json_encode($data));
-         
+             $payment = $this->easyApiService->getPayment($this->request->get('x_gateway_reference'));
+             $this->easyApiService->refundPayment($payment->getFirstChargeId(), json_encode($data));
          } catch(\App\Exceptions\ShopifyApiException $e) {
             $this->ehsh->handle($e, $this->request->all());
             return response('HTTP/1.0 500 Internal Server Error', 500);

@@ -277,11 +277,11 @@ class EasyService implements EasyServiceInterface {
                 'name' => $name,
                 'quantity' => 1,
                 'unit' => 'pcs',
-                'unitPrice' => $amount * 100,
+                'unitPrice' => $amount,
                 'taxRate' => 0,
                 'taxAmount' => 0,
-                'grossTotalAmount' =>$amount * 100,
-                'netTotalAmount' => $amount * 100];
+                'grossTotalAmount' => $amount,
+                'netTotalAmount' => $amount];
     }
 
     protected function trimProductName(string $productName) {
@@ -302,5 +302,9 @@ class EasyService implements EasyServiceInterface {
           } else {
               return false;
           }
+    }
+
+    public static function formatEasyAmount($amount) {
+        return (int) ( round($amount *100) );
     }
 }
