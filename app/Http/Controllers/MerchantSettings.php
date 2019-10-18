@@ -20,6 +20,12 @@ class MerchantSettings extends Controller
         if(session('shop_url')) {
             $shop = \App\MerchantSettings::getSettingsByShopUrl(session('shop_url'));
             $params = current($shop->toArray());
+            if(empty($params['language'])) {
+                $params['language'] = 'en-GB';
+            }
+            if(empty($params['allowed_customer_type'])) {
+                $params['allowed_customer_type'] = 'b2c';
+            }
             $params['easy_secret_key'] = ShopifyApiService::decryptKey($params['easy_secret_key']);
             $params['easy_test_secret_key'] = ShopifyApiService::decryptKey($params['easy_test_secret_key']);
             $params['lang'] = ["en-GB" => "English", 
@@ -53,7 +59,6 @@ class MerchantSettings extends Controller
             'easy_secret_key'  => 'required',
             'easy_test_secret_key' =>  'required',
             'easy_merchantid' => 'required'];
-
         // TODO validation!
         $validator = Validator::make($data, $rules);
         if ($validator->passes()) {
