@@ -31,17 +31,19 @@ class ChargeCreatedEasyHook extends Controller {
               $data = $request->get('data');
               $paymentDetails = PaymentDetails::getDetailsByPaymentId($data['paymentId']);
               $captureRequestParams = json_decode($paymentDetails->first()->capture_request_params, true);
-              $chargeId = $data['chargeId'];
-              $shopifyReturnParams->setX_Amount($captureRequestParams['x_amount']);
-              $shopifyReturnParams->setX_GatewayReference($chargeId);
-              $shopifyReturnParams->setX_Reference($captureRequestParams['x_reference']);
-              $shopifyReturnParams->setX_Result('completed');
-              $shopifyReturnParams->setX_Timestamp(date("Y-m-d\TH:i:s\Z"));
-              $shopifyReturnParams->setX_TransactionType('capture');
-              $settingsCollection = MerchantSettings::getSettingsByShopUrl($paymentDetails->first()->shop_url);
-              $pass = $settingsCollection->first()->gateway_password;
-              $shopifyReturnParams->setX_Signature($shopifyApiService->calculateSignature($shopifyReturnParams->getParams(),$pass));
-              $shopifyApiService->paymentCallback($captureRequestParams['x_url_callback'], $shopifyReturnParams->getParams());
+              if(!empty($captureRequestParams)) {
+                  $chargeId = $data['chargeId'];
+                  $shopifyReturnParams->setX_Amount($captureRequestParams['x_amount']);
+                  $shopifyReturnParams->setX_GatewayReference($chargeId);
+                  $shopifyReturnParams->setX_Reference($captureRequestParams['x_reference']);
+                  $shopifyReturnParams->setX_Result('completed');
+                  $shopifyReturnParams->setX_Timestamp(date("Y-m-d\TH:i:s\Z"));
+                  $shopifyReturnParams->setX_TransactionType('capture');
+                  $settingsCollection = MerchantSettings::getSettingsByShopUrl($paymentDetails->first()->shop_url);
+                  $pass = $settingsCollection->first()->gateway_password;
+                  $shopifyReturnParams->setX_Signature($shopifyApiService->calculateSignature($shopifyReturnParams->getParams(),$pass));
+                  $shopifyApiService->paymentCallback($captureRequestParams['x_url_callback'], $shopifyReturnParams->getParams());
+              }
           } catch(\App\Exceptions\ShopifyApiException $e) {
                 $ehsh->handle($e, $request->all());
             return response('HTTP/1.0 500 Internal Server Error', 500);
