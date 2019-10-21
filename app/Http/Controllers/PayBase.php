@@ -56,11 +56,18 @@ class PayBase extends Controller {
                                                         'Shop name:' . $request->get('x_shop_name'));
       }
       $settings = $settingsCollection->first()->toArray();
-      $checkout = $this->shopifyAppService->getCheckoutById($settings['access_token'], $settings['shop_url'], $request->get('x_reference'));
+      $reference = $request->get('x_reference');
+      $checkout = $this->shopifyAppService->getCheckoutById($settings['access_token'], $settings['shop_url'], $reference);
+
       if(empty($checkout)) {
-          $error = 'Checkout with id: '. $request->get('x_reference') .' not found';
-          throw new \App\Exceptions\ShopifyApiException($error);
+          sleep(30);
+          $checkout = $this->shopifyAppService->getCheckoutById($settings['access_token'], $settings['shop_url'], $reference);
+          if(empty($checkout)) {
+            $error = 'Checkout with id: '. $reference .' not found';
+            throw new \App\Exceptions\ShopifyApiException($error);
+          }
       }
+
       $key = ShopifyApiService::decryptKey($settings[static::KEY]);
       $this->easyApiService->setAuthorizationKey($key);
       $this->easyApiService->setEnv(static::ENV);
