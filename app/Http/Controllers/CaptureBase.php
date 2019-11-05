@@ -66,30 +66,27 @@ class CaptureBase extends Controller {
           try{
              $paymentDetails = PaymentDetails::getDetailsByPaymentId($this->request->get('x_gateway_reference'));
              $settingsCollection = MerchantSettings::getSettingsByShopUrl($paymentDetails->first()->shop_url);
-           
              $params = $this->request->all();
-             
              $params['x_test'] = (static::ENV == 'live') ? 'false' : 'true';
-             
              $fieldName = static::KEY; 
              $key = ShopifyApiService::decryptKey($settingsCollection->first()->$fieldName);
-             
              $this->easyApiService->setEnv(static::ENV);
              $this->easyApiService->setAuthorizationKey($key);
-             
+             $payment = $this->easyApiService->getPayment($this->request->get('x_gateway_reference'));
+             // Swish is already captured
+             if('Swish' == $payment->getPaymentMethod()){
+                 return response('HTTP/1.0 OK', 200);
+             }
              unset($params['x_signature']);
-             
              $gatewayPassword = $settingsCollection->first()->gateway_password;
              if($this->request->get('x_signature') != $this->shopifyApiService->calculateSignature($params, $gatewayPassword)) {
                 throw new \App\Exceptions\ShopifyApiException('Singnature is wrong while trying to capture');
              }
-      
              $orderJson = $this->shopifyApiService->getOrder($settingsCollection->first()->access_token, 
              $settingsCollection->first()->shop_url, $this->request->get('x_shopify_order_id'));
              $orderDecoded = json_decode($orderJson, true);
              $this->checkoutObject->setCheckout($orderDecoded['order']);
              PaymentDetails::setCaptureRequestParams($orderDecoded['order']['checkout_id'], json_encode($this->request->all()));
-
              if($this->easyService::formatEasyAmount($this->request->get('x_amount')) == $this->checkoutObject->getAmount()) {
                  $data['amount'] = $this->checkoutObject->getAmount();
                  $data['orderItems'] = json_decode($paymentDetails->first()->create_payment_items_params, true);
