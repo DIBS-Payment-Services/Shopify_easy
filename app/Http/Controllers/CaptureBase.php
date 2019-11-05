@@ -73,10 +73,6 @@ class CaptureBase extends Controller {
              $this->easyApiService->setEnv(static::ENV);
              $this->easyApiService->setAuthorizationKey($key);
              $payment = $this->easyApiService->getPayment($this->request->get('x_gateway_reference'));
-             // Swish is already captured
-             if('Swish' == $payment->getPaymentMethod()){
-                 return response('HTTP/1.0 OK', 200);
-             }
              unset($params['x_signature']);
              $gatewayPassword = $settingsCollection->first()->gateway_password;
              if($this->request->get('x_signature') != $this->shopifyApiService->calculateSignature($params, $gatewayPassword)) {
@@ -94,6 +90,11 @@ class CaptureBase extends Controller {
                  $data['amount'] = $this->easyService::formatEasyAmount($this->request->get('x_amount'));
                  $data['orderItems'][] = $this->easyService->getFakeOrderRow($this->easyService::formatEasyAmount($this->request->get('x_amount')), 'captured-partially1');
              }
+             // Swish is already captured
+             if('Swish' == $payment->getPaymentMethod()){
+                 return response('HTTP/1.0 OK', 200);
+             }
+       
              $this->easyApiService->chargePayment($this->request->get('x_gateway_reference'), json_encode($data));
          } catch(\App\Exceptions\ShopifyApiException $e) {
             $this->ehsh->handle($e, $this->request->all());
