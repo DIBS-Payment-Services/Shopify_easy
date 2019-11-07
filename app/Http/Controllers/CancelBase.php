@@ -56,7 +56,6 @@ class CancelBase extends Controller {
         $this->ehsh= $ehsh;
         $this->handler = $handler;
         $this->checkoutObject = $checkoutObject;
-        $this->easyApiService = $easyApiService;
         $this->checkoutObject = $checkoutObject;
         $this->easyApiService = $easyApiService;
         $this->shopifyApiService = $shopifyApiService;
@@ -85,8 +84,15 @@ class CancelBase extends Controller {
              $this->checkoutObject->setCheckout($orderDecoded['order']);
              $data['amount'] = $this->checkoutObject->getAmount();
              $data['orderItems'] = json_decode($paymentDetails->first()->create_payment_items_params, true);
-             PaymentDetails::persistCancelRequestParams($orderDecoded['order']['checkout_id'], json_encode($this->request->all()));
-             $this->easyApiService->voidPayment($this->request->get('x_gateway_reference'), json_encode($data));
+             $result = $this->easyApiService->getPayment($this->request->get('x_gateway_reference'));
+             // Swish can only be refunded
+             if('Swish' == $result->getPaymentMethod()) {
+                 PaymentDetails::persistRefundRequestParams($orderDecoded['order']['checkout_id'], json_encode($this->request->all()));
+                 $this->easyApiService->refundPayment($payment->getFirstChargeId(), json_encode($data));
+             } else {
+                 PaymentDetails::persistCancelRequestParams($orderDecoded['order']['checkout_id'], json_encode($this->request->all()));
+                 $this->easyApiService->voidPayment($this->request->get('x_gateway_reference'), json_encode($data));
+             }
          } catch(\App\Exceptions\ShopifyApiException $e) {
             $this->ehsh->handle($e, $this->request->all());
             return response('HTTP/1.0 500 Internal Server Error', 500);
