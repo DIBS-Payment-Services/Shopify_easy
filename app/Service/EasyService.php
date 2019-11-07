@@ -131,7 +131,6 @@ class EasyService implements EasyServiceInterface {
                      ['eventName' => 'payment.cancel.created',
                       'url' => $cancelCompletedWebhook,
                       'authorization' => substr(str_shuffle(MD5(microtime())), 0, 10)]]];
-             $this->logger->debug($data);
              return $data;
     }
 
