@@ -70,11 +70,11 @@ class EasyService implements EasyServiceInterface {
                            $consumerData = [
                                 'email' => $checkoutObject->getCustomerEmail(),
                                  'shippingAddress' => [
-                                            'addressLine1' =>  $checkoutObject->getAddressLine1(),
-                                            'addressLine2' =>  $checkoutObject->getAddressLine2(),
+                                            'addressLine1' =>  urlencode($checkoutObject->getAddressLine1()),
+                                            'addressLine2' => urlencode($checkoutObject->getAddressLine2()),
                                             'postalCode' =>  $checkoutObject->getPostalCode(),
-                                            'city' =>  $checkoutObject->getCity(),
-                                            'country' =>  $iso3countryCode],
+                                            'city' =>  urlencode($checkoutObject->getCity()),
+                                            'country' =>  urlencode($iso3countryCode)],
                                  'privatePerson' => [
                                             'firstName' => $firstName,
                                             'lastName' => $lastName]
