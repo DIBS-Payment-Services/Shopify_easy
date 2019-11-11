@@ -84,9 +84,9 @@ class CancelBase extends Controller {
              $this->checkoutObject->setCheckout($orderDecoded['order']);
              $data['amount'] = $this->checkoutObject->getAmount();
              $data['orderItems'] = json_decode($paymentDetails->first()->create_payment_items_params, true);
-             $result = $this->easyApiService->getPayment($this->request->get('x_gateway_reference'));
+             $payment = $this->easyApiService->getPayment($this->request->get('x_gateway_reference'));
              // Swish can only be refunded
-             if('Swish' == $result->getPaymentMethod()) {
+             if('Swish' == $payment->getPaymentMethod()) {
                  PaymentDetails::persistRefundRequestParams($orderDecoded['order']['checkout_id'], json_encode($this->request->all()));
                  $this->easyApiService->refundPayment($payment->getFirstChargeId(), json_encode($data));
              } else {
