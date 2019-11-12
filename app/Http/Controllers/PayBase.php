@@ -9,6 +9,8 @@ use App\Service\EasyApiService;
 use App\PaymentDetails;
 use App\CheckoutObject;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+
 
 /**
  * Description of PayBase
@@ -103,7 +105,12 @@ class PayBase extends Controller {
                  'currency' => $request->get('x_currency'),
                  'create_payment_items_params' => 
                  json_encode($createPaymentParams['order']['items'])];
+      DB::enableQueryLog();
+      $this->logger->debug('START add or update Details query................');
       PaymentDetails::addOrUpdateDetails($paramsToSave);
+      $this->logger->debug(DB::getQueryLog());
+      $this->logger->debug('last inserted id = ' .  DB::getPdo()->lastInsertId());
+      $this->logger->debug('END update Details query................');
       session(['request_params' => json_encode($requestParams)]);
       return redirect($createPaymentResult->hostedPaymentPageUrl . '&' . http_build_query(['language' => $settings['language']]));
    }
