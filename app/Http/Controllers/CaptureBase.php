@@ -37,6 +37,7 @@ class CaptureBase extends Controller {
     private $ehsh;
     private $handler;
     private $logger;
+    private $shopifyReturnParams;
 
     public function __construct(Request $request,  
                                 EasyService $easyService,
@@ -46,7 +47,8 @@ class CaptureBase extends Controller {
                                 CheckoutObject $checkoutObject,
                                 EasyApiService $easyApiService,
                                 ShopifyApiService $shopifyApiService,
-                                \Illuminate\Log\Logger $logger
+                                \Illuminate\Log\Logger $logger,
+                                \App\ShopifyReturnParams $shopifyReturnParams
                                     
             ) {
         $this->request = $request;
@@ -60,6 +62,7 @@ class CaptureBase extends Controller {
         $this->easyApiService = $easyApiService;
         $this->shopifyApiService = $shopifyApiService;
         $this->logger = $logger;
+        $this->shopifyReturnParams = $shopifyReturnParams;
     }
 
         protected function handle() {
@@ -92,9 +95,32 @@ class CaptureBase extends Controller {
              }
              // Swish is already captured
              if('Swish' == $payment->getPaymentMethod()){
+                 ob_start();
+                 echo "Ok";
+                 $size = ob_get_length();
+                 header("Content-Encoding: none");
+                 header("Content-Length: {$size}");
+                 header("Connection: close");
+                 ob_end_flush();
+                 ob_flush();
+                 flush();
+                 // Close current session (if it exists).
+                 if (session_id()) {
+                     session_write_close();
+                 }
+                 sleep(30);
+                 $this->shopifyReturnParams->setX_Amount($params['x_amount']);
+                 $this->shopifyReturnParams->setX_GatewayReference($params['x_gateway_reference']);
+                 $this->shopifyReturnParams->setX_Reference($params['x_reference']);
+                 $this->shopifyReturnParams->setX_Result('completed');
+                 $this->shopifyReturnParams->setX_Timestamp(date("Y-m-d\TH:i:s\Z"));
+                 $this->shopifyReturnParams->setX_TransactionType('capture');
+                 $settingsCollection = MerchantSettings::getSettingsByShopUrl($paymentDetails->first()->shop_url);
+                 $pass = $settingsCollection->first()->gateway_password;
+                 $this->shopifyReturnParams->setX_Signature($this->shopifyApiService->calculateSignature($this->shopifyReturnParams->getParams(),$pass));
+                 $this->shopifyApiService->paymentCallback($params['x_url_callback'], $this->shopifyReturnParams->getParams());
                  return response('HTTP/1.0 OK', 200);
              }
-       
              $this->easyApiService->chargePayment($this->request->get('x_gateway_reference'), json_encode($data));
          } catch(\App\Exceptions\ShopifyApiException $e) {
             $this->ehsh->handle($e, $this->request->all());
@@ -109,5 +135,4 @@ class CaptureBase extends Controller {
             return response('HTTP/1.0 500 Internal Server Error', 500);
          }
     }
-
 }
