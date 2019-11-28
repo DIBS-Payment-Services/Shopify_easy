@@ -26,7 +26,7 @@ class PaymentDetails extends Model {
        return self::query()->where('dibs_paymentid', $paymentId)->get();
     }
 
-    public static function setCaptureRequestParams($checkoutid, $data) {
+    public static function persistCaptureRequestParams($checkoutid, $data) {
         self::query()->where(['checkout_id' => $checkoutid])->update(['capture_request_params' => $data]);
     }
 

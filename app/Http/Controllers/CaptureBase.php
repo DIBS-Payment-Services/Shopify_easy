@@ -67,10 +67,14 @@ class CaptureBase extends Controller {
 
         protected function handle() {
           try{
+             $transactionExiststInTable = true;
              $paymentDetails = PaymentDetails::getDetailsByPaymentId($this->request->get('x_gateway_reference'));
-             $settingsCollection = MerchantSettings::getSettingsByShopUrl($paymentDetails->first()->shop_url);
+             if($paymentDetails->count() == 0) {
+                 $transactionExiststInTable = false;
+             }
+             $settingsCollection = MerchantSettings::getSettingsByMerchantId($this->request->get('x_account_id'));
              $params = $this->request->all();
-             $params['x_test'] = (static::ENV == 'live') ? 'false' : 'true';
+             $params['x_test'] = (static::ENV == 'live')?'false':'true';
              $fieldName = static::KEY; 
              $key = ShopifyApiService::decryptKey($settingsCollection->first()->$fieldName);
              $this->easyApiService->setEnv(static::ENV);
@@ -85,47 +89,46 @@ class CaptureBase extends Controller {
              $settingsCollection->first()->shop_url, $this->request->get('x_shopify_order_id'));
              $orderDecoded = json_decode($orderJson, true);
              $this->checkoutObject->setCheckout($orderDecoded['order']);
-             PaymentDetails::setCaptureRequestParams($orderDecoded['order']['checkout_id'], json_encode($this->request->all()));
-             if($this->easyService::formatEasyAmount($this->request->get('x_amount')) == $this->checkoutObject->getAmount()) {
+             PaymentDetails::persistCaptureRequestParams($orderDecoded['order']['checkout_id'], json_encode($this->request->all()));
+             if($transactionExiststInTable && ($this->easyService::formatEasyAmount($this->request->get('x_amount')) == $this->checkoutObject->getAmount())) {
                  $data['amount'] = $this->checkoutObject->getAmount();
                  $data['orderItems'] = json_decode($paymentDetails->first()->create_payment_items_params, true);
              } else {
                  $data['amount'] = $this->easyService::formatEasyAmount($this->request->get('x_amount'));
-                 $data['orderItems'][] = $this->easyService->getFakeOrderRow($this->easyService::formatEasyAmount($this->request->get('x_amount')), 'captured-partially1');
-             }
-             // Swish is already captured
-             if('Swish' == $payment->getPaymentMethod()){
-                 ob_start();
-                 echo "Ok";
-                 $size = ob_get_length();
-                 header("Content-Encoding: none");
-                 header("Content-Length: {$size}");
-                 header("Connection: close");
-                 ob_end_flush();
-                 ob_flush();
-                 flush();
-                 // Close current session (if it exists).
-                 if (session_id()) {
-                     session_write_close();
-                 }
-                 sleep(30);
-                 $this->shopifyReturnParams->setX_Amount($params['x_amount']);
-                 $this->shopifyReturnParams->setX_GatewayReference($params['x_gateway_reference']);
-                 $this->shopifyReturnParams->setX_Reference($params['x_reference']);
-                 $this->shopifyReturnParams->setX_Result('completed');
-                 $this->shopifyReturnParams->setX_Timestamp(date("Y-m-d\TH:i:s\Z"));
-                 $this->shopifyReturnParams->setX_TransactionType('capture');
-                 $settingsCollection = MerchantSettings::getSettingsByShopUrl($paymentDetails->first()->shop_url);
-                 $pass = $settingsCollection->first()->gateway_password;
-                 $this->shopifyReturnParams->setX_Signature($this->shopifyApiService->calculateSignature($this->shopifyReturnParams->getParams(),$pass));
-                 $this->shopifyApiService->paymentCallback($params['x_url_callback'], $this->shopifyReturnParams->getParams());
-                 return response('HTTP/1.0 OK', 200);
+                 $data['orderItems'][] = $this->easyService->getFakeOrderRow($this->easyService::formatEasyAmount($this->request->get('x_amount')), 'captured-1');
              }
              $this->easyApiService->chargePayment($this->request->get('x_gateway_reference'), json_encode($data));
+             if(false == $transactionExiststInTable) {
+                $this->closeSession();
+                $this->shopifyReturnParams->setX_Amount($params['x_amount']);
+                $this->shopifyReturnParams->setX_GatewayReference($params['x_gateway_reference']);
+                $this->shopifyReturnParams->setX_Reference($params['x_reference']);
+                $this->shopifyReturnParams->setX_Result('completed');
+                $this->shopifyReturnParams->setX_Timestamp(date("Y-m-d\TH:i:s\Z"));
+                $this->shopifyReturnParams->setX_TransactionType('capture');
+                $pass = $settingsCollection->first()->gateway_password;
+                $this->shopifyReturnParams->setX_Signature($this->shopifyApiService->calculateSignature($this->shopifyReturnParams->getParams(),$pass));
+                $this->shopifyApiService->paymentCallback($params['x_url_callback'], $this->shopifyReturnParams->getParams());
+                return response('HTTP/1.0 OK', 200);
+             }
          } catch(\App\Exceptions\ShopifyApiException $e) {
             $this->ehsh->handle($e, $this->request->all());
             return response('HTTP/1.0 500 Internal Server Error', 500);
          } catch(\App\Exceptions\EasyException $e) {
+             // For Swish payments and for transaction that was already captured
+             if(402 == $e->getCode()) {
+               $this->closeSession();
+               $this->shopifyReturnParams->setX_Amount($params['x_amount']);
+               $this->shopifyReturnParams->setX_GatewayReference($params['x_gateway_reference']);
+               $this->shopifyReturnParams->setX_Reference($params['x_reference']);
+               $this->shopifyReturnParams->setX_Result('completed');
+               $this->shopifyReturnParams->setX_Timestamp(date("Y-m-d\TH:i:s\Z"));
+               $this->shopifyReturnParams->setX_TransactionType('capture');
+               $pass = $settingsCollection->first()->gateway_password;
+               $this->shopifyReturnParams->setX_Signature($this->shopifyApiService->calculateSignature($this->shopifyReturnParams->getParams(),$pass));
+               $this->shopifyApiService->paymentCallback($params['x_url_callback'], $this->shopifyReturnParams->getParams());
+               return response('HTTP/1.0 OK', 200);
+            } 
             $this->eh->handle($e);
             return response('HTTP/1.0 500 Internal Server Error', 500);
          }
@@ -134,5 +137,24 @@ class CaptureBase extends Controller {
             $this->logger->debug($this->request->all());
             return response('HTTP/1.0 500 Internal Server Error', 500);
          }
+    }
+
+    private function closeSession() {
+       error_log('startCloseSession');
+       ob_start();
+       echo "Ok";
+       $size = ob_get_length();
+       header("Content-Encoding: none");
+       header("Content-Length: {$size}");
+       header("Connection: close");
+       ob_end_flush();
+       ob_flush();
+       flush();
+       // Close current session (if it exists)
+       if (session_id()) {
+           session_write_close();
+       }
+       sleep(30);
+       error_log('endCloseSession');
     }
 }
