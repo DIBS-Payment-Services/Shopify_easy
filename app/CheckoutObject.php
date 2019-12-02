@@ -109,7 +109,7 @@ class CheckoutObject {
         return $this->checkout['total_discounts'];
     }
 
-    public function isTaxesInleded() {
+    public function isTaxesIncluded() {
         return $this->checkout['taxes_included'];
     }
 

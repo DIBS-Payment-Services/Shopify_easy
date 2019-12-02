@@ -23,7 +23,7 @@ class EasyService implements EasyServiceInterface {
     public function generateRequestParams(array $settings, \App\CheckoutObject $checkoutObject): array {
           $data = [
             'order' => [
-                'items' => $this->getRequestObjectItems($checkoutObject),
+                'items' => $this->getRequestObjectItems($checkoutObject, $settings['language']),
                 'amount' => $checkoutObject->getAmount(),
                 'currency' => $checkoutObject->getCurrency(),
                 'reference' => $this->request->get('x_reference')],
@@ -139,12 +139,12 @@ class EasyService implements EasyServiceInterface {
     * @param type $checkout
     * @return type
     */
-   public function getRequestObjectItems(\App\CheckoutObject $checkoutObject) {
+   public function getRequestObjectItems(\App\CheckoutObject $checkoutObject, $lang = 'en-US') {
             $items = [];
 
             // Products
             foreach ($checkoutObject->getLineItems() as $item) {
-               if($checkoutObject->isTaxesInleded()) {
+               if($checkoutObject->isTaxesIncluded()) {
                     $unitPrice =  round($item['price'] / (1 + $this->getTaxRate($item)) * 100);
                     $taxRate =  round($this->getTaxRate($item) * 10000);
                     $taxAmount = round($this->getTaxPrice($item) * 100);
@@ -153,7 +153,7 @@ class EasyService implements EasyServiceInterface {
                } else {
                     $unitPrice =  round($item['price'] * 100);
                     $taxRate =  0;
-                    $taxAmount = 0;
+                    $taxAmount = $checkoutObject->getTotalTax() * 100;
                     $grossTotalAmount = round(($item['price'] * 100)) * $item['quantity'];
                     $netTotalAmount =  round($item['price'] *  $item['quantity'] * 100);
 
@@ -180,8 +180,8 @@ class EasyService implements EasyServiceInterface {
                 $items[] = $this->discountRow($this->getDiscountAmount($checkoutObject));
             }
 
-            if(!$checkoutObject->isTaxesInleded()) {
-                 $items[] = $this->taxRow($checkoutObject->getTotalTax());
+            if(!$checkoutObject->isTaxesIncluded()) {
+                 $items[] = $this->taxRow($checkoutObject->getTotalTax(), $lang);
             }
 
             return $items;
@@ -191,7 +191,7 @@ class EasyService implements EasyServiceInterface {
         $shipping = [];
         if(!empty(($checkoutObject->getShippingLines()))) {
                $current = current($checkoutObject->getShippingLines());
-            if($checkoutObject->isTaxesInleded()) {
+            if($checkoutObject->isTaxesIncluded()) {
                 $unitPrice = round($current['price'] / (1 + $this->getTaxRate($current)) * 100);
                 $taxRate =  round($this->getTaxRate($current) * 10000);
                 $taxAmount = round($this->getTaxPrice($current) * 100);
@@ -257,10 +257,10 @@ class EasyService implements EasyServiceInterface {
                 'netTotalAmount' => -round($amount * 100)];
     }
     
-    protected function taxRow($amount) {
+    protected function taxRow($amount, $lang = 'en-GB') {
         return [
-                'reference' => 'Tax',
-                'name' => str_replace(array('\'', '&'), '', 'Tax'),
+                'reference' => 'tax',
+                'name' => $this->getTaxTranslation($lang),
                 'quantity' => 1,
                 'unit' => 'pcs',
                 'unitPrice' => round($amount * 100),
@@ -305,5 +305,24 @@ class EasyService implements EasyServiceInterface {
 
     public static function formatEasyAmount($amount) {
         return (int) ( round($amount *100) );
+    }
+
+    private function getTaxTranslation($language = 'en-GB') {
+        $result = 'Tax';
+        switch ($language) {
+            case 'en-GB':
+               $result = 'VAT';
+            break;
+            case 'nb-NO':
+                $result = 'MVA';
+            break;
+            case 'sv-SE':
+                $result = 'MOMS';
+            break;
+            case 'da-DK':
+                $result = 'MOMS';
+            break;
+        }
+        return $result;
     }
 }
