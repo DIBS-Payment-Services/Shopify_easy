@@ -11,7 +11,6 @@ use Illuminate\Http\Request;
  */
 class EasyService implements EasyServiceInterface {
 
-
     private $request;
     private $logger;
 
@@ -32,74 +31,50 @@ class EasyService implements EasyServiceInterface {
                 ],
            ];
 
-            // b2b or b2bc 
-            if(trim($settings['allowed_customer_type'])) {
-                    switch($settings['allowed_customer_type']) {
-                        case 'b2c' :
-                            $supportedTypes = ['B2C'];
-                            $default = 'B2C';
-                        break;
-                        case 'b2b':
-                            $supportedTypes = ['B2B'];
-                            $default = 'B2B';
-                        break;
-                        case 'b2c_b2b_b2c':
-                            $supportedTypes = ['B2C', 'B2B'];
-                            $default = 'B2C';
-                        break;
-                        case 'b2b_b2c_b2b':
-                            $supportedTypes = ['B2C', 'B2B'];
-                            $default = 'B2B';
-                        break;
-                        default:
-                           $supportedTypes = ['B2C', 'B2B'];
-                           $default = 'B2C';
+           if($this->customerAddressValidation($checkoutObject)) {
+               $firstName = ($checkoutObject->getCustomerFirstName()) ? $checkoutObject->getCustomerFirstName() : 'FirstName';
+               $lastName = ($checkoutObject->getcustomerLastName()) ? $checkoutObject->getcustomerLastName() : 'LastName';
+               $iso2countryCode = $checkoutObject->getIso2countryCode();
+               $res = DirectoryCountry::getCountry($iso2countryCode)->first();
+               $iso3countryCode = $res->iso3_code;
+               $consumerData = [
+                     'email' => $checkoutObject->getCustomerEmail(),
+                     'shippingAddress' => [
+                                'addressLine1' =>  urlencode($checkoutObject->getAddressLine1()),
+                                'addressLine2' => urlencode($checkoutObject->getAddressLine2()),
+                                'postalCode' =>  $checkoutObject->getPostalCode(),
+                                'city' =>  urlencode($checkoutObject->getCity()),
+                                'country' =>  urlencode($iso3countryCode)]];
+            
+                if($checkoutObject->getCompany()) {
+                 $consumerData['company'] =  ['name'=> 'DIBS', 
+                                             'contact' => ['firstName' => 'Test', 
+                                              'lastName' => 'Dibs']]; 
+                 }else {
+                    $consumerData['privatePerson'] = ['firstName' => $firstName,
+                                         'lastName' => $lastName]; 
+                }
 
-               }
-                   $consumerType = ['supportedTypes' => $supportedTypes,
-                                    'default' => $default];
-                   $data['checkout']['consumerType'] = $consumerType;
-                   if('b2c' == $settings['allowed_customer_type']) {
-                       // consumers data
-                       if($this->customerAddressValidation($checkoutObject)) {
-                           $firstName = ($checkoutObject->getCustomerFirstName()) ? $checkoutObject->getCustomerFirstName() : 'FirstName';
-                           $lastName = ($checkoutObject->getcustomerLastName()) ? $checkoutObject->getcustomerLastName() : 'LastName';
-                           $iso2countryCode = $checkoutObject->getIso2countryCode();
-                           $res = DirectoryCountry::getCountry($iso2countryCode)->first();
-                           $iso3countryCode = $res->iso3_code;
-                           $consumerData = [
-                                'email' => $checkoutObject->getCustomerEmail(),
-                                 'shippingAddress' => [
-                                            'addressLine1' =>  urlencode($checkoutObject->getAddressLine1()),
-                                            'addressLine2' => urlencode($checkoutObject->getAddressLine2()),
-                                            'postalCode' =>  $checkoutObject->getPostalCode(),
-                                            'city' =>  urlencode($checkoutObject->getCity()),
-                                            'country' =>  urlencode($iso3countryCode)],
-                                 'privatePerson' => [
-                                            'firstName' => $firstName,
-                                            'lastName' => $lastName]
-                            ];
-                            $phone = null;
-                            if(!empty($checkoutObject->getCustomerPhone())) {
-                              $phone = $checkoutObject->getCustomerPhone();
-                            } 
-                            if(!empty($checkoutObject->getBillinAddresPhone())){
-                               $phone = $checkoutObject->getBillinAddresPhone();
-                            }
-                            if(!empty($checkoutObject->getShippingAddresPhone())){
-                               $phone = $checkoutObject->getShippingAddresPhone();
-                            }
-                            $phone = str_replace([' ', '-', '(', ')'], '', $phone);
-                            if(preg_match('/\+[0-9]{7,18}$/', $phone) ) {
-                               $phonePrefix = substr($phone, 0, 3);
-                               $number = substr($phone, 3);
-                               $consumerData['phoneNumber'] = ['prefix' => $phonePrefix, 'number' => $number];
-                            }
-                            $data['checkout']['consumer'] = $consumerData;
-                            $data['checkout']['merchantHandlesConsumerData'] = true;
-                       }
-                   }
+                $phone = null;
+                if(!empty($checkoutObject->getCustomerPhone())) {
+                  $phone = $checkoutObject->getCustomerPhone();
+                } 
+                if(!empty($checkoutObject->getBillinAddresPhone())){
+                   $phone = $checkoutObject->getBillinAddresPhone();
+                }
+                if(!empty($checkoutObject->getShippingAddresPhone())){
+                   $phone = $checkoutObject->getShippingAddresPhone();
+                }
+                $phone = str_replace([' ', '-', '(', ')'], '', $phone);
+                if(preg_match('/\+[0-9]{7,18}$/', $phone) ) {
+                   $phonePrefix = substr($phone, 0, 3);
+                   $number = substr($phone, 3);
+                   $consumerData['phoneNumber'] = ['prefix' => $phonePrefix, 'number' => $number];
+                }
+                $data['checkout']['consumer'] = $consumerData;
              }
+                // don't show address form in Easy Window
+                $data['checkout']['merchantHandlesConsumerData'] = true;
 
              $x_url_complete = $this->request->get('x_url_complete');
              $url = ($this->request->get('x_test') == 'true') ? url('return_t')  : url('return');
@@ -216,7 +191,6 @@ class EasyService implements EasyServiceInterface {
                     'netTotalAmount' => $netTotalAmount];
             
             return $shippingLine;
-            
         }
     }
 

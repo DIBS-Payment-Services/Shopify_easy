@@ -85,6 +85,15 @@ class CheckoutObject {
         }
     }
 
+    public function getCompany() {
+        if(!empty($this->checkout['shipping_address']['company'])) {
+            return $this->checkout['shipping_address']['company'];
+        }
+        if(!empty($this->checkout['billing_address']['company'])) {
+            return $this->checkout['billing_address']['company'];
+        }
+    }
+
     public function getCustomerEmail() {
         return $this->checkout['customer']['email'];
     }
