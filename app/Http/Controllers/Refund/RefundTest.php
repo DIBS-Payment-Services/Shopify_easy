@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Refund;
 
 use Illuminate\Http\Request;
 
-class Refund extends RefundBase implements LiveEnv
+class RefundTest extends RefundBase implements \App\Http\Controllers\TestEnv
 {
     /**
      * Handle the incoming request.

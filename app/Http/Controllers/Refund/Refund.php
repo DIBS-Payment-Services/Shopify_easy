@@ -1,12 +1,11 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Refund;
 
 use Illuminate\Http\Request;
 
-class AcceptTest extends AcceptBase implements TestEnv
+class Refund extends RefundBase implements \App\Http\Controllers\LiveEnv
 {
-    
     /**
      * Handle the incoming request.
      *
@@ -15,6 +14,6 @@ class AcceptTest extends AcceptBase implements TestEnv
      */
     public function __invoke(Request $request)
     {
-        return $this->handle();
+        $this->handle();
     }
 }

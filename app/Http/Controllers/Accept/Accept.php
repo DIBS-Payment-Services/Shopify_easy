@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Accept;
 
-class Accept extends AcceptBase implements LiveEnv
+class Accept extends AcceptBase implements \App\Http\Controllers\LiveEnv
 {
     
     /**

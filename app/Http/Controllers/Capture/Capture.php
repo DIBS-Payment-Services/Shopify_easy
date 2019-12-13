@@ -6,14 +6,14 @@
  * and open the template in the editor.
  */
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Capture;
 
 /**
  * Description of Lara
  *
  * @author mabe
  */
-class Capture extends CaptureBase implements LiveEnv {
+class Capture extends CaptureBase implements \App\Http\Controllers\LiveEnv {
     
     public function __invoke() {
         

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Accept;
 
 use Illuminate\Http\Request;
 use App\Service\ShopifyApiService;
@@ -12,7 +12,7 @@ use App\Service\EasyApiService;
  *
  * @author mabe
  */
-class AcceptBase extends Controller {
+class AcceptBase extends \App\Http\Controllers\Controller {
 
     /**
      * @var Request
