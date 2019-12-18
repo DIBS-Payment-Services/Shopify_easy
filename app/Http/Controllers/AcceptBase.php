@@ -12,7 +12,7 @@ use App\Service\EasyApiService;
  *
  * @author mabe
  */
-class AcceptBase extends Controller {
+class AcceptBase extends \App\Http\Controllers\Controller {
 
     /**
      * @var Request
@@ -28,6 +28,9 @@ class AcceptBase extends Controller {
      * @var \App\ShopifyReturnParams
      */
     private $shopifyReturnParams;
+    
+    private $exceptionHandler;
+    
     protected $easyApiService;
     protected $shopifyApiService;
 
@@ -35,12 +38,16 @@ class AcceptBase extends Controller {
                                 ShopifyApiService $shopifyApiService, 
                                 Request $request,
                                 \App\Exceptions\EasyApiExceptionHandler $eh,
-                                \App\ShopifyReturnParams $shopifyReturnParams) {
+                                \App\ShopifyReturnParams $shopifyReturnParams,
+                                \App\Exceptions\Handler $exceptionHandler
+            
+            ) {
         $this->easyApiService = $easyApiService;
         $this->shopifyApiService = $shopifyApiService;
         $this->shopifyReturnParams = $shopifyReturnParams;
         $this->eh = $eh;
         $this->request = $request;
+        $this->exceptionHandler = $exceptionHandler;
     }
 
     protected function handle() {
@@ -82,6 +89,7 @@ class AcceptBase extends Controller {
               $this->eh->handle($e, $this->request->all());
               return response('HTTP/1.0 500 Internal Server Error', 500);
         } catch(\Exception $e) {
+              $this->exceptionHandler->report($e);
               return response('HTTP/1.0 500 Internal Server Error', 500);
         }
     }
