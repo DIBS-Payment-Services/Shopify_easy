@@ -1,12 +1,13 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\EasyWebHooks;
+
 use Illuminate\Http\Request;
 use App\Service\ShopifyApiService;
 use App\PaymentDetails;
 use App\MerchantSettings;
 
-class RefundEasyHook extends Controller
+class RefundEasyHook extends \App\Http\Controllers\Controller
 {
     /**
      * Handle the incoming request.
@@ -21,6 +22,8 @@ class RefundEasyHook extends Controller
                              \App\Exceptions\Handler $handler)
     {
         try{
+              error_log('RefundEasyHook');
+              
               $data = $request->get('data');
               $paymentDetails = PaymentDetails::getDetailsByPaymentId($data['paymentId']);
               $refundRequestParams = json_decode($paymentDetails->first()->refund_request_params, true);

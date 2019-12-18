@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Refund;
 
 use Illuminate\Http\Request;
 
@@ -11,7 +11,7 @@ use App\Service\EasyApiService;
 use App\CheckoutObject;
 use App\PaymentDetails;
 
-class RefundBase extends Controller
+class RefundBase extends \App\Http\Controllers\Controller
 {
      /**
      * @var ShopifyApiService

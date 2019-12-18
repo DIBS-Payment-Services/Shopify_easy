@@ -1,10 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Capture;
 
-use Illuminate\Http\Request;
-
-class CancelTest extends CancelBase implements TestEnv
+class CaptureTest extends CaptureBase implements \App\Http\Controllers\TestEnv
 {
     /**
      * Handle the incoming request.
@@ -12,9 +10,8 @@ class CancelTest extends CancelBase implements TestEnv
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function __invoke(Request $request)
+    public function __invoke()
     {
         return $this->handle();
-                
     }
 }

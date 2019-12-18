@@ -15,33 +15,34 @@ use App\Http\Middleware\CheckHmack;
 Route::get('auth', 'AuthApp')->middleware(CheckHmack::class);
 Route::get('install', 'InstallApp');
 
-Route::post('pay', 'Pay');
-Route::post('pay_t', 'PayTest');
+Route::post('pay', 'Pay\Pay');
+Route::post('pay_t', 'Pay\PayTest');
 
-Route::post('capture', 'Capture');
-Route::post('capture_t', 'CaptureTest');
+Route::post('capture', 'Capture\Capture');
+Route::post('capture_t', 'Capture\CaptureTest');
 
-Route::post('void', 'Cancel');
-Route::post('void_t', 'CancelTest');
+Route::post('void', 'Void\Cancel');
+Route::post('void_t', 'Void\CancelTest');
 
-Route::post('refund', 'Refund');
-Route::post('refund_t', 'RefundTest');
+Route::post('refund', 'Refund\Refund');
+Route::post('refund_t', 'Refund\RefundTest');
 
 Route::post('postForm', 'MerchantSettings@store');
 Route::get('form', 'MerchantSettings@index');
-Route::get('return', 'Accept');
 
-Route::get('return_t', 'AcceptTest');
+Route::get('return', 'Accept\Accept');
+Route::get('return_t', 'Accept\AcceptTest');
+
 Route::get('/', 'Index@index');
 Route::get('test', 'Test');
 
-Route::post('charge_created', 'ChargeCreatedEasyHook');
 Route::post('order_created', 'OrderCreatedHook');
 
-Route::post('charge_created', 'ChargeCreatedEasyHook');
+Route::post('charge_created', 'EasyWebHooks\ChargeCreatedEasyHook');
 
-Route::post('refund_hook', 'RefundEasyHook');
-Route::post('cancel_hook', 'CancelEasyHook');
+Route::post('refund_hook', 'EasyWebHooks\RefundEasyHook');
+Route::post('cancel_hook', 'EasyWebHooks\CancelEasyHook');
 
 Route::get('installinit', 'Index@install');
-Route::post('callback', 'Callback');
+
+Route::post('callback', 'EasyWebHooks\Callback');

@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Void;
 
 use Illuminate\Http\Request;
 
-class Cancel extends CancelBase implements LiveEnv
+class Cancel extends CancelBase implements \App\Http\Controllers\LiveEnv
 {
     /**
      * Handle the incoming request.

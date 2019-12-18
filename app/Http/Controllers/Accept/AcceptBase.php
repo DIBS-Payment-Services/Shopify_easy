@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Accept;
 
 use Illuminate\Http\Request;
 use App\Service\ShopifyApiService;
@@ -29,25 +29,28 @@ class AcceptBase extends \App\Http\Controllers\Controller {
      */
     private $shopifyReturnParams;
     
-    private $exceptionHandler;
-    
     protected $easyApiService;
+
     protected $shopifyApiService;
+
+    private $exHandler;
+
+    private $logger;
 
     public function __construct(EasyApiService $easyApiService, 
                                 ShopifyApiService $shopifyApiService, 
                                 Request $request,
                                 \App\Exceptions\EasyApiExceptionHandler $eh,
-                                \App\ShopifyReturnParams $shopifyReturnParams,
-                                \App\Exceptions\Handler $exceptionHandler
-            
-            ) {
+                                \App\Exceptions\Handler $exHandler,
+                                \Illuminate\Log\Logger $logger,
+                                \App\ShopifyReturnParams $shopifyReturnParams) {
         $this->easyApiService = $easyApiService;
         $this->shopifyApiService = $shopifyApiService;
         $this->shopifyReturnParams = $shopifyReturnParams;
         $this->eh = $eh;
         $this->request = $request;
-        $this->exceptionHandler = $exceptionHandler;
+        $this->exHandler = $exHandler;
+        $this->logger = $logger;
     }
 
     protected function handle() {
@@ -90,6 +93,8 @@ class AcceptBase extends \App\Http\Controllers\Controller {
               return response('HTTP/1.0 500 Internal Server Error', 500);
         } catch(\Exception $e) {
               $this->exceptionHandler->report($e);
+              $this->exHandler->report($e);
+              $this->logger->debug($requestInitialParams);
               return response('HTTP/1.0 500 Internal Server Error', 500);
         }
     }

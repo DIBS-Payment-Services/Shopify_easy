@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Capture;
 
 use Illuminate\Http\Request;
 use App\Service\ShopifyApiService;
@@ -15,7 +15,7 @@ use App\PaymentDetails;
  *
  * @author mabe
  */
-class CaptureBase extends Controller {
+class CaptureBase extends \App\Http\Controllers\Controller {
 
     /**
      * @var ShopifyApiService

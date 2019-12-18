@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\EasyWebHooks;
 
 use Illuminate\Http\Request;
 use App\Service\ShopifyApiService;
@@ -8,7 +8,7 @@ use App\PaymentDetails;
 use App\MerchantSettings;
 use App\Service\EasyApiService;
 
-class Callback extends Controller
+class Callback extends \App\Http\Controllers\Controller
 {
 
     /**

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Pay;
 
 use App\Service\ShopifyApiService;
 use App\MerchantSettings;
@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\DB;
  *
  * @author mabe
  */
-class PayBase extends Controller {
+class PayBase extends \App\Http\Controllers\Controller {
 
     protected $shopify_access_token;
     protected $shop_url;

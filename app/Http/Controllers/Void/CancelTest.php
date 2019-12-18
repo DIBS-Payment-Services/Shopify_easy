@@ -1,9 +1,10 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Void;
+
 use Illuminate\Http\Request;
 
-class RefundTest extends RefundBase implements TestEnv
+class CancelTest extends CancelBase implements \App\Http\Controllers\TestEnv
 {
     /**
      * Handle the incoming request.
@@ -13,6 +14,7 @@ class RefundTest extends RefundBase implements TestEnv
      */
     public function __invoke(Request $request)
     {
-        $this->handle();
+        return $this->handle();
+                
     }
 }

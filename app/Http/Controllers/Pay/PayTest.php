@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Pay;
 
 use Illuminate\Http\Request;
 
-class PayTest extends PayBase implements TestEnv
+class PayTest extends PayBase implements \App\Http\Controllers\TestEnv
 {
     /**
      * Handle the incoming request.

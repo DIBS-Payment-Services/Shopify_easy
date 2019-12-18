@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Void;
 
 use Illuminate\Http\Request;
 
@@ -16,7 +16,7 @@ use App\PaymentDetails;
  *
  * @author mabe
  */
-class CancelBase extends Controller {
+class CancelBase extends \App\Http\Controllers\Controller {
 
     /**
     * @var ShopifyApiService

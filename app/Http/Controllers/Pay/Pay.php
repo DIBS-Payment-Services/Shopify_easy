@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Pay;
 
 use Illuminate\Http\Request;
 
-class Pay extends PayBase implements LiveEnv
+class Pay extends PayBase implements \App\Http\Controllers\LiveEnv
 {
     /**
      * Handle the incoming request.
@@ -31,6 +31,6 @@ class Pay extends PayBase implements LiveEnv
         if(isset($parsedErrorMessage) ) {
             $errorMsg = $parsedErrorMessage;
         }
-        return $this->showErrorPage('Error ocurred...' . $errorMsg);
+        return redirect($this->request->get('x_url_complete'));
     }
 }
