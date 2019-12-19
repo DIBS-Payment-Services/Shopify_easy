@@ -23,7 +23,7 @@ class EasyService implements EasyServiceInterface {
           $data = [
             'order' => [
                 'items' => $this->getRequestObjectItems($checkoutObject, $settings['language']),
-                'amount' => $checkoutObject->getAmount(),
+                'amount' => $this->getAmount(),
                 'currency' => $checkoutObject->getCurrency(),
                 'reference' => $this->request->get('x_reference')],
              'checkout' => [
@@ -159,6 +159,12 @@ class EasyService implements EasyServiceInterface {
                  $items[] = $this->taxRow($checkoutObject->getTotalTax(), $lang);
             }
 
+            // it is not possible to fetch Gift discount amount from Checkout object
+            // so we can only do this way...
+            $deltaAmount = $checkoutObject->getAmount() - $this->getAmount();
+            if($deltaAmount > 0) {
+               $items[] = $this->giftDiscount($deltaAmount);
+            }
             return $items;
     }
 
@@ -210,6 +216,10 @@ class EasyService implements EasyServiceInterface {
         return $rate;
     }
 
+    protected function getAmount() {
+        return (int)round($this->request->get('x_amount') * 100);
+    }
+
     protected function getDiscountAmount(\App\CheckoutObject $checkoutObject) {
         $amount = 0;
         if(!empty($checkoutObject->getTotalDiscounts())) {
@@ -230,7 +240,7 @@ class EasyService implements EasyServiceInterface {
                 'grossTotalAmount' => -round($amount * 100),
                 'netTotalAmount' => -round($amount * 100)];
     }
-    
+
     protected function taxRow($amount, $lang = 'en-GB') {
         return [
                 'reference' => 'tax',
@@ -243,7 +253,20 @@ class EasyService implements EasyServiceInterface {
                 'grossTotalAmount' => round($amount * 100),
                 'netTotalAmount' => round($amount * 100)];
     }
-    
+
+    protected function giftDiscount($amount, $lang = 'en-GB') {
+        return [
+                'reference' => 'gift-discount',
+                'name' => 'Discount',
+                'quantity' => 1,
+                'unit' => 'pcs',
+                'unitPrice' => -$amount,
+                'taxRate' => 0,
+                'taxAmount' => 0,
+                'grossTotalAmount' => -$amount,
+                'netTotalAmount' => -$amount];
+    }
+
     public function getFakeOrderRow($amount, $name) {
          return [
                 'reference' => md5($amount . $name),
