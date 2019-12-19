@@ -32,6 +32,7 @@ class VerifyCsrfToken extends Middleware
         'order_created',
         'charge_created',
         'cancel_hook',
-        'refund_hook'
+        'refund_hook',
+        'key'
     ];
 }

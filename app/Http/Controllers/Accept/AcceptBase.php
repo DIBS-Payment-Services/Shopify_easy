@@ -92,7 +92,6 @@ class AcceptBase extends \App\Http\Controllers\Controller {
               $this->eh->handle($e, $this->request->all());
               return response('HTTP/1.0 500 Internal Server Error', 500);
         } catch(\Exception $e) {
-              $this->exceptionHandler->report($e);
               $this->exHandler->report($e);
               $this->logger->debug($requestInitialParams);
               return response('HTTP/1.0 500 Internal Server Error', 500);

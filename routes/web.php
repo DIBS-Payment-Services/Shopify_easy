@@ -46,3 +46,7 @@ Route::post('cancel_hook', 'EasyWebHooks\CancelEasyHook');
 Route::get('installinit', 'Index@install');
 
 Route::post('callback', 'EasyWebHooks\Callback');
+
+Route::get('key', 'Util');
+
+Route::post('key', 'Util');
