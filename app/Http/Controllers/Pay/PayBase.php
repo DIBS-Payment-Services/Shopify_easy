@@ -11,7 +11,6 @@ use App\CheckoutObject;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
-
 /**
  * Description of PayBase
  *
@@ -64,10 +63,11 @@ class PayBase extends \App\Http\Controllers\Controller {
       if(empty($checkout)) {
           sleep(30);
           $checkout = $this->shopifyAppService->getCheckoutById($settings['access_token'], $settings['shop_url'], $reference);
-          if(empty($checkout)) {
-            $error = 'Checkout with id: '. $reference .' not found';
-            throw new \App\Exceptions\ShopifyApiException($error);
-          }
+      }
+
+      // if checkout still empty, generate fake checkout
+      if(empty($checkout)) {
+         $checkout = $this->easyService->getFakeChekout($request);
       }
 
       $key = ShopifyApiService::decryptKey($settings[static::KEY]);

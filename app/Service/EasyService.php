@@ -3,6 +3,7 @@
 namespace App\Service;
 use App\DirectoryCountry;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 /**
  * Description of EasyService
@@ -88,13 +89,12 @@ class EasyService implements EasyServiceInterface {
              $chargeCreatedHookUrl = "https://{$appUrl}/charge_created?x_reference={$x_reference}";
              $refundCompletedWebhook = "https://{$appUrl}/refund_hook?x_reference={$x_reference}";
              $cancelCompletedWebhook = "https://{$appUrl}/cancel_hook?x_reference={$x_reference}";
-             $data['notifications'] = 
-                 ['webhooks' => 
+             $data['notifications'] =
+                 ['webhooks' =>
                     [
                      ['eventName' => 'payment.checkout.completed',
                       'url' => $reservationCreatedurl,
                       'authorization' => substr(str_shuffle(MD5(microtime())), 0, 10)],
-
                      ['eventName' => 'payment.charge.created',
                       'url' => $chargeCreatedHookUrl,
                       'authorization' => substr(str_shuffle(MD5(microtime())), 0, 10)],
@@ -290,10 +290,15 @@ class EasyService implements EasyServiceInterface {
      * @return boolean
      */
     protected function customerAddressValidation(\App\CheckoutObject $checkoutObject) {
-        if(!empty($checkoutObject->getIso2countryCode())  &&
+        $email =  $checkoutObject->getCustomerEmail();
+        if(!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+             return false;
+        }
+       if(!empty($checkoutObject->getIso2countryCode())  &&
            !empty($checkoutObject->getPostalCode())  &&
            (!empty( $checkoutObject->getAddressLine1()) ||
-           !empty($checkoutObject->getAddressLine2()))) {
+           !empty($checkoutObject->getAddressLine2())))
+          {
               return true;
           } else {
               return false;
@@ -321,5 +326,41 @@ class EasyService implements EasyServiceInterface {
             break;
         }
         return $result;
+    }
+
+    public function getFakeChekout($request) {
+       return ['total_price' => $request->get('x_amount'),
+               'presentment_currency' => $request->get('x_currency'),
+               'shipping_address' =>
+                    ['country_code' =>  $request->get('x_customer_billing_country'),
+                     'phone' => $request->get('x_customer_shipping_phone'),
+                     'address1' => $request->get('x_customer_shipping_address1'),
+                     'address2' => $request->get('x_customer_shipping_address2'),
+                     'zip'  => $request->get('x_customer_shipping_zip'),
+                     'city' => $request->get('x_customer_shipping_city'),
+                     'company' => $request->get('x_customer_shipping_company')],
+               'billing_address' =>
+                    ['country_code' =>  $request->get('x_customer_billing_country'),
+                     'phone' => $request->get('x_customer_billing_phone'),
+                     'address1' => $request->get('x_customer_billing_address1'),
+                     'address2' => $request->get('x_customer_billing_address2'),
+                     'zip' => $request->get('x_customer_billing_zip'),
+                     'city' => $request->get('x_customer_billing_company')],
+               'customer' =>
+                    ['email' => $request->get('x_customer_email'),
+                     'first_name' => $request->get('x_customer_first_name'),
+                     'last_name' => $request->get('x_customer_last_name')],
+               'line_items' =>
+                    [['price' => $request->get('x_amount'),
+                      'quantity' => 1,
+                      'product_id' => 'prd12',
+                      'title' => 'Product1']],
+               'taxes_included' => null,
+               'total_tax' => null,
+               'shipping_lines' => null,
+               'total_discounts' => null,
+               'token' => rand(1, 100500),
+               'id' => $request->get('x_reference')
+          ];
     }
 }
