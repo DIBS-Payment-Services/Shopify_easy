@@ -28,7 +28,7 @@ class AcceptBase extends \App\Http\Controllers\Controller {
      * @var \App\ShopifyReturnParams
      */
     private $shopifyReturnParams;
-    
+
     protected $easyApiService;
 
     protected $shopifyApiService;
@@ -94,6 +94,7 @@ class AcceptBase extends \App\Http\Controllers\Controller {
         } catch(\Exception $e) {
               $this->exHandler->report($e);
               $this->logger->debug($requestInitialParams);
+              $this->logger->debug($this->request);
               return response('HTTP/1.0 500 Internal Server Error', 500);
         }
     }
