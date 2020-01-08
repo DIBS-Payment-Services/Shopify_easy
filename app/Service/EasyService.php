@@ -128,7 +128,7 @@ class EasyService implements EasyServiceInterface {
                } else {
                     $unitPrice =  round($item['price'] * 100);
                     $taxRate =  0;
-                    $taxAmount = $checkoutObject->getTotalTax() * 100;
+                    $taxAmount = round($checkoutObject->getTotalTax() * 100);
                     $grossTotalAmount = round(($item['price'] * 100)) * $item['quantity'];
                     $netTotalAmount =  round($item['price'] *  $item['quantity'] * 100);
 
@@ -182,7 +182,7 @@ class EasyService implements EasyServiceInterface {
                  $unitPrice = round($current['price'] * 100);
                  $taxRate =  0;
                  $taxAmount = 0;
-                 $grossTotalAmount = round(($current['price'] ) * 100);
+                 $grossTotalAmount = round(($current['price']) * 100);
                  $netTotalAmount =  round($current['price'] *  100);
             }
             $shippingLine =  [
