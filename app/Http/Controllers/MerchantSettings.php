@@ -18,7 +18,7 @@ class MerchantSettings extends Controller
     public function index()
     {
         if(session('shop_url')) {
-            $shop = \App\MerchantSettings::getSettingsByShopUrl(session('shop_url'));
+            $shop = \App\MerchantSettings::getSettingsByShopOrigin(session('shop_url'));
             $params = current($shop->toArray());
             if(empty($params['language'])) {
                 $params['language'] = 'en-GB';

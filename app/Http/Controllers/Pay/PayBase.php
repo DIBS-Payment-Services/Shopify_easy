@@ -111,7 +111,6 @@ class PayBase extends \App\Http\Controllers\Controller {
       $this->logger->debug(DB::getQueryLog());
       $this->logger->debug('last inserted id = ' .  DB::getPdo()->lastInsertId());
       $this->logger->debug('END update Details query................');
-      session(['request_params' => json_encode($requestParams)]);
       return redirect($createPaymentResult->hostedPaymentPageUrl . '&' . http_build_query(['language' => $settings['language']]));
    }
 

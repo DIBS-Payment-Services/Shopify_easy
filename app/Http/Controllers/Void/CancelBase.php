@@ -66,7 +66,7 @@ class CancelBase extends \App\Http\Controllers\Controller {
     protected function handle() {
         try{
              $paymentDetails = PaymentDetails::getDetailsByPaymentId($this->request->get('x_gateway_reference'));
-             $settingsCollection = MerchantSettings::getSettingsByShopUrl($paymentDetails->first()->shop_url);
+             $settingsCollection = MerchantSettings::getSettingsByShopOrigin($paymentDetails->first()->shop_url);
              $params = $this->request->all();
              $params['x_test'] = (static::ENV == 'live') ? 'false' : 'true';
              $fieldName = static::KEY; 

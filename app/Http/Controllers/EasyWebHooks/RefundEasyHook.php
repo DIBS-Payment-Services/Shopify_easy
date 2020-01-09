@@ -34,7 +34,7 @@ class RefundEasyHook extends \App\Http\Controllers\Controller
                   $shopifyReturnParams->setX_Result('completed');
                   $shopifyReturnParams->setX_Timestamp(date("Y-m-d\TH:i:s\Z"));
                   $shopifyReturnParams->setX_TransactionType('refund');
-                  $settingsCollection = MerchantSettings::getSettingsByShopUrl($paymentDetails->first()->shop_url);
+                  $settingsCollection = MerchantSettings::getSettingsByShopOrigin($paymentDetails->first()->shop_url);
                   $pass = $settingsCollection->first()->gateway_password;
                   $shopifyReturnParams->setX_Signature($shopifyApiService->calculateSignature($shopifyReturnParams->getParams(),$pass));
                   $shopifyApiService->paymentCallback($refundRequestParams['x_url_callback'], $shopifyReturnParams->getParams());

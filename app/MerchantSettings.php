@@ -21,7 +21,7 @@ class MerchantSettings extends Model
      * @param string $shopUrl
      * @return \Illuminate\Database\Eloquent\Collection
      */
-    public static function getSettingsByShopUrl($shopUrl)
+    public static function getSettingsByShopOrigin($shopUrl)
     {
         return self::query()->where('shop_url', $shopUrl)->get();
     }

@@ -35,7 +35,7 @@ class OrderCreatedHook extends Controller{
             if( $collectionPaymentDetail->count() == 0) {
                 return response('OK', 200);
             }
-            $settingsCollection = MerchantSettings::getSettingsByShopUrl($collectionPaymentDetail->first()->shop_url);
+            $settingsCollection = MerchantSettings::getSettingsByShopOrigin($collectionPaymentDetail->first()->shop_url);
             $paymentId = $collectionPaymentDetail->first()->dibs_paymentid;
             if($collectionPaymentDetail->first()->test == 1) {
                 $key = ShopifyApiService::decryptKey($settingsCollection->first()->easy_test_secret_key);
