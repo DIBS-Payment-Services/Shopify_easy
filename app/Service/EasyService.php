@@ -136,7 +136,7 @@ class EasyService implements EasyServiceInterface {
                }
                $items[] = array(
                     'reference' => !empty($item['product_id']) ? $item['product_id']: md5($item['title']),
-                    'name' => str_replace(array('\'', '&'), '', $this->trimProductName($item['title'])),
+                    'name' => strip_tags(str_replace(array('\'', '&'), '', $this->trimProductName($item['title']))),
                     'quantity' => $item['quantity'],
                     'unit' => 'pcs',
                     'unitPrice' => $unitPrice,
@@ -188,7 +188,7 @@ class EasyService implements EasyServiceInterface {
             }
             $shippingLine =  [
                     'reference' => !empty($current['id']) ? $current['id'] : md5($current['title']),
-                    'name' => str_replace(array('\'', '&'), '', $this->trimProductName($current['title'])),
+                    'name' => strip_tags(str_replace(array('\'', '&'), '', $this->trimProductName($current['title']))),
                     'quantity' => 1,
                     'unit' => 'pcs',
                     'unitPrice' => $unitPrice,
