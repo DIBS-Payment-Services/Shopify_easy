@@ -99,11 +99,11 @@ class CheckoutObject {
     }
 
     public function getCustomerFirstName() {
-        return $this->checkout['customer']['first_name'];
+        return $this->trimSpecialCharacters($this->checkout['customer']['first_name']);
     }
 
     public function getcustomerLastName() {
-        return $this->checkout['customer']['last_name'];
+        return $this->trimSpecialCharacters($this->checkout['customer']['last_name']);
     }
 
     public function getLineItems() {
@@ -124,6 +124,10 @@ class CheckoutObject {
 
     public function getTotalTax() {
         return $this->checkout['total_tax'];
+    }
+
+    protected function trimSpecialCharacters($tring) {
+        return str_replace('&', 'and', $tring);
     }
 
 }
