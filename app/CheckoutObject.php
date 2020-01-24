@@ -25,7 +25,7 @@ class CheckoutObject {
 
     public function getIso2countryCode() {
         if(!empty($this->checkout['shipping_address']['country_code'])) {
-            return $this->$this->checkout['shipping_address']['country_code'];
+            return $this->checkout['shipping_address']['country_code'];
         }
         if(!empty($this->checkout['billing_address']['country_code'])) {
             return $this->checkout['billing_address']['country_code'];
