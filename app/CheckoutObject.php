@@ -25,7 +25,7 @@ class CheckoutObject {
 
     public function getIso2countryCode() {
         if(!empty($this->checkout['shipping_address']['country_code'])) {
-            return $this->checkout['shipping_address']['country_code'];
+            return $this->$this->checkout['shipping_address']['country_code'];
         }
         if(!empty($this->checkout['billing_address']['country_code'])) {
             return $this->checkout['billing_address']['country_code'];
@@ -39,22 +39,22 @@ class CheckoutObject {
 
     public function getShippingAddresPhone() {
         if(!empty($this->checkout['shipping_address']['phone'])) {
-            return $this->checkout['shipping_address']['phone'];
+            return $this->prepareString($this->checkout['shipping_address']['phone']);
         }
     }
 
     public function getBillinAddresPhone() {
         if(!empty($this->checkout['billing_address']['phone'])) {
-            return $this->checkout['billing_address']['phone'];
+            return $this->prepareString($this->checkout['billing_address']['phone']);
         }
     }
 
     public function getAddressLine1() {
         if(!empty($this->checkout['shipping_address']['address1'])) {
-            return $this->checkout['shipping_address']['address1'];
+            return $this->prepareString($this->checkout['shipping_address']['address1']);
         }
         if(!empty($this->checkout['billing_address']['address1'])) {
-            return $this->checkout['billing_address']['address1'];
+            return $this->prepareString($this->checkout['billing_address']['address1']);
         }
     }
 
@@ -78,19 +78,19 @@ class CheckoutObject {
 
     public function getCity() {
         if(!empty($this->checkout['shipping_address']['city'])) {
-            return $this->checkout['shipping_address']['city'];
+            return $this->prepareString($this->checkout['shipping_address']['city']);
         }
         if(!empty($this->checkout['billing_address']['city'])) {
-            return $this->checkout['billing_address']['city'];
+            return $this->prepareString($this->checkout['billing_address']['city']);
         }
     }
 
     public function getCompany() {
         if(!empty($this->checkout['shipping_address']['company'])) {
-            return $this->checkout['shipping_address']['company'];
+            return $this->prepareString($this->checkout['shipping_address']['company']);
         }
         if(!empty($this->checkout['billing_address']['company'])) {
-            return $this->checkout['billing_address']['company'];
+            return $this->prepareString($this->checkout['billing_address']['company']);
         }
     }
 
@@ -99,11 +99,11 @@ class CheckoutObject {
     }
 
     public function getCustomerFirstName() {
-        return $this->trimSpecialCharacters($this->checkout['customer']['first_name']);
+        return $this->prepareString($this->checkout['customer']['first_name']);
     }
 
     public function getcustomerLastName() {
-        return $this->trimSpecialCharacters($this->checkout['customer']['last_name']);
+        return $this->prepareString($this->checkout['customer']['last_name']);
     }
 
     public function getLineItems() {
@@ -126,8 +126,8 @@ class CheckoutObject {
         return $this->checkout['total_tax'];
     }
 
-    protected function trimSpecialCharacters($tring) {
-        return str_replace('&', 'and', $tring);
+    protected function prepareString($tring) {
+        return substr((str_replace('&', 'and', $tring)), 0, 128);
     }
 
 }
