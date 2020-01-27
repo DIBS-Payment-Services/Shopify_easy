@@ -41,25 +41,25 @@ class EasyService implements EasyServiceInterface {
                $consumerData = [
                      'email' => $checkoutObject->getCustomerEmail(),
                      'shippingAddress' => [
-                                'addressLine1' =>  urlencode($checkoutObject->getAddressLine1()),
-                                'addressLine2' => urlencode($checkoutObject->getAddressLine2()),
+                                'addressLine1' =>  $checkoutObject->getAddressLine1(),
+                                'addressLine2' => $checkoutObject->getAddressLine2(),
                                 'postalCode' =>  $checkoutObject->getPostalCode(),
-                                'city' =>  urlencode($checkoutObject->getCity()),
-                                'country' =>  urlencode($iso3countryCode)]];
+                                'city' =>  $checkoutObject->getCity(),
+                                'country' =>  $iso3countryCode]];
             
                 if($checkoutObject->getCompany()) {
-                 $consumerData['company'] =  ['name'=> 'DIBS', 
-                                             'contact' => ['firstName' => 'Test', 
-                                              'lastName' => 'Dibs']]; 
+                 $consumerData['company'] =  ['name'=> $checkoutObject->getCompany(),
+                                             'contact' => ['firstName' => $firstName,
+                                             'lastName' => $lastName]];
                  }else {
                     $consumerData['privatePerson'] = ['firstName' => $firstName,
-                                         'lastName' => $lastName]; 
+                                         'lastName' => $lastName];
                 }
 
                 $phone = null;
                 if(!empty($checkoutObject->getCustomerPhone())) {
                   $phone = $checkoutObject->getCustomerPhone();
-                } 
+                }
                 if(!empty($checkoutObject->getBillinAddresPhone())){
                    $phone = $checkoutObject->getBillinAddresPhone();
                 }
@@ -67,7 +67,7 @@ class EasyService implements EasyServiceInterface {
                    $phone = $checkoutObject->getShippingAddresPhone();
                 }
                 $phone = str_replace([' ', '-', '(', ')'], '', $phone);
-                if(preg_match('/\+[0-9]{7,18}$/', $phone) ) {
+                if(preg_match('/^\+[0-9]{7,18}$/', $phone) ) {
                    $phonePrefix = substr($phone, 0, 3);
                    $number = substr($phone, 3);
                    $consumerData['phoneNumber'] = ['prefix' => $phonePrefix, 'number' => $number];

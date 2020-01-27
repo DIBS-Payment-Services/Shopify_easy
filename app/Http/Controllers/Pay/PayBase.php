@@ -79,10 +79,14 @@ class PayBase extends \App\Http\Controllers\Controller {
       $result = $this->easyApiService->createPayment(json_encode($createPaymentParams));
       if($result->getHttpStatus() == 400) {
           $errorObject = json_decode($result->getResponse(), true);
-          foreach ($errorObject['errors'] as $key=>$value) {
-              // if postal code is not valid try to create checkout withput postal code
+          foreach ($errorObject['errors'] as $key => $value) {
+              // if postal code is not valid try to create checkout without postal code
               if('checkout.Consumer.ShippingAddress.PostalCode' == $key) {
-                  unset($createPaymentParams['checkout']['merchantHandlesConsumerData']);
+                  unset($createPaymentParams['checkout']['consumer']['shippingAddress']);
+              }
+              // skip wrong email untill we will find validation rules
+              if('checkout.Consumer.Email' == $key) {
+                  unset($createPaymentParams['checkout']['consumer']['email']);
               }
           }
           $result = $this->easyApiService->createPayment(json_encode($createPaymentParams));
