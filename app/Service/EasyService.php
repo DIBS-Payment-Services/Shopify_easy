@@ -3,7 +3,7 @@
 namespace App\Service;
 use App\DirectoryCountry;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
+
 
 /**
  * Description of EasyService
@@ -295,8 +295,9 @@ class EasyService implements EasyServiceInterface {
         if(!filter_var($email, FILTER_VALIDATE_EMAIL)) {
              return false;
         }
-       if(!empty($checkoutObject->getIso2countryCode())  &&
+       if(!empty($checkoutObject->getIso2countryCode()) &&
            !empty($checkoutObject->getPostalCode())  &&
+           !empty($checkoutObject->getCity()) &&
            (!empty( $checkoutObject->getAddressLine1()) ||
            !empty($checkoutObject->getAddressLine2())))
           {

@@ -11,6 +11,10 @@ class CheckoutObject {
 
     private $checkout;
 
+    const ALLOWED_CHARACTERS_PATTERN = '/[^\x{00A1}-\x{00AC}\x{00AE}-\x{00FF}\x{0100}-\x{017F}\x{0180}-\x{024F}'
+                                      . '\x{0250}-\x{02AF}\x{02B0}-\x{02FF}\x{0300}-\x{036F}'
+                                      . 'A-Za-z0-9\!\#\$\%\(\)*\+\,\-\.\/\:\;\\=\?\@\[\]\\^\_\`\{\}\~ ]+/u';
+
     public function setCheckout(array $checkout) {
         $this->checkout = $checkout;
     }
@@ -127,7 +131,8 @@ class CheckoutObject {
     }
 
     protected function prepareString($tring) {
-        return substr((str_replace('&', 'and', $tring)), 0, 128);
+        $string = substr($tring, 0, 128);
+        return preg_replace(self::ALLOWED_CHARACTERS_PATTERN, '', $string);
     }
 
 }
