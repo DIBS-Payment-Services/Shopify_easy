@@ -64,10 +64,10 @@ class CheckoutObject {
 
     public function getAddressLine2() {
         if(!empty($this->checkout['shipping_address']['address2'])) {
-            return $this->checkout['shipping_address']['address2'];
+            return $this->prepareString($this->checkout['shipping_address']['address2']);
         }
         if(!empty($this->checkout['billing_address']['address2'])) {
-             return $this->checkout['billing_address']['address2'];
+             return $this->prepareString($this->checkout['billing_address']['address2']);
         }
     }
 
