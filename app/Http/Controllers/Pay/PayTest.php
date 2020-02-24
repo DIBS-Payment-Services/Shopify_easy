@@ -23,6 +23,7 @@ class PayTest extends PayBase implements \App\Http\Controllers\TestEnv
         }
         catch(\Exception $e) {
            $message = $this->logger->error($e->getMessage());
+           syslog(LOG_CRIT, 'shopify.easy.exception: ' . $e->getMessage());
         }
         return $this->showErrorPage($message);
     }

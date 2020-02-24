@@ -39,17 +39,18 @@ class EasyApiExceptionHandler {
                     $message .= 'Curl error: ' . $e->getMessage();
                 break;
         }
-
         $this->logger->error($prefixMessage . $message . PHP_EOL . $stackTrace);
+        syslog(LOG_CRIT, 'shopify.easy.exception: ' . $prefixMessage . $message . PHP_EOL . $stackTrace);
         if($add) {
             $this->logger->debug($add);
+            syslog(LOG_CRIT, print_r($add, true));
         }
        return $message;
     }
 
     /**
      * Parse json error message and fetch error message readable for users
-     * 
+     *
      * @param string $msgJson
      */
     public function parseError( $msgJson ) {

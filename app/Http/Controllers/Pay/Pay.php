@@ -26,10 +26,7 @@ class Pay extends PayBase implements \App\Http\Controllers\LiveEnv
         }
         catch(\Exception $e) {
             $this->logger->error($e->getMessage());
-        }
-        $errorMsg = '';
-        if(isset($parsedErrorMessage) ) {
-            $errorMsg = $parsedErrorMessage;
+            syslog(LOG_CRIT, 'shopify.easy.exception: ' . $e->getMessage());
         }
         return redirect($this->request->get('x_url_complete'));
     }
