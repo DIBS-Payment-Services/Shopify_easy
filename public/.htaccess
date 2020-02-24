@@ -4,7 +4,6 @@
     </IfModule>
 
     RewriteEngine On
-
     Header edit Set-Cookie ^(.*)$ $1;Secure;SameSite=none;
 
     # Handle Authorization Header
