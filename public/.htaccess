@@ -4,7 +4,8 @@
     </IfModule>
 
     RewriteEngine On
-    Header edit Set-Cookie ^(.*)$ $1;Secure;SameSite=none;
+    #Header edit Set-Cookie ^(.*)$ $1;Secure;SameSite=none;
+    Header set Set-Cookie testcookie "expr=-z %{req:Cookie}"
 
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .

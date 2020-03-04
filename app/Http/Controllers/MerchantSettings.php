@@ -15,11 +15,13 @@ class MerchantSettings extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        if(session('shop_url')) {
-            $shop = \App\MerchantSettings::getSettingsByShopOrigin(session('shop_url'));
+         // temporary solution untill we manage SameSite:none to cookie header
+         //if(session('shop_url')) {
+            $shop = \App\MerchantSettings::getSettingsByShopOrigin($request->get('shop'));
             $params = current($shop->toArray());
+
             if(empty($params['language'])) {
                 $params['language'] = 'en-GB';
             }
@@ -28,20 +30,20 @@ class MerchantSettings extends Controller
             }
             $params['easy_secret_key'] = ShopifyApiService::decryptKey($params['easy_secret_key']);
             $params['easy_test_secret_key'] = ShopifyApiService::decryptKey($params['easy_test_secret_key']);
-            $params['lang'] = ["en-GB" => "English", 
-                                   "sv-SE"=> "Swedish", 
-                                   "nb-NO" => "Norwegian", 
+            $params['lang'] = ["en-GB" => "English",
+                                   "sv-SE"=> "Swedish",
+                                   "nb-NO" => "Norwegian",
                                    "da-DK" => "Danish"];
             $params['act'] = ["b2c" => "B2C only",
-                              "b2b" => "B2B only", 
-                              "b2c_b2b_b2c" => "B2C & B2B (defaults to B2C)", 
+                              "b2b" => "B2B only",
+                              "b2c_b2b_b2c" => "B2C & B2B (defaults to B2C)",
                               "b2b_b2c_b2b" => "B2B & B2C (defaults to B2B)" ];
             $params['gateway_install_link'] = env('EASY_GATEWAY_INSTALL_URL');
-            $params['shop_origin'] = session('shop_url');
+            $params['shop_origin'] =  $request->get('shop'); //session('shop_url');
             $params['action_url'] = 'https://' . env('SHOPIFY_APP_URL') . '/postForm';
             $params['install_gateway_redirect'] = env('EASY_GATEWAY_INSTALL_URL');
             return view('easy-settings-form', $params);
-        }
+        //}
     }
 
     /**
