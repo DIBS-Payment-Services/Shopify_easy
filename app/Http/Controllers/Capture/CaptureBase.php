@@ -39,7 +39,7 @@ class CaptureBase extends \App\Http\Controllers\Controller {
     private $logger;
     private $shopifyReturnParams;
 
-    public function __construct(Request $request,  
+    public function __construct(Request $request,
                                 EasyService $easyService,
                                 \App\Exceptions\EasyApiExceptionHandler $eh,
                                 \App\Exceptions\ShopifyApiExceptionHandler $ehsh,
@@ -49,7 +49,7 @@ class CaptureBase extends \App\Http\Controllers\Controller {
                                 ShopifyApiService $shopifyApiService,
                                 \Illuminate\Log\Logger $logger,
                                 \App\ShopifyReturnParams $shopifyReturnParams
-                                    
+
             ) {
         $this->request = $request;
         $this->easyService = $easyService;
@@ -75,17 +75,16 @@ class CaptureBase extends \App\Http\Controllers\Controller {
              $settingsCollection = MerchantSettings::getSettingsByMerchantId($this->request->get('x_account_id'));
              $params = $this->request->all();
              $params['x_test'] = (static::ENV == 'live')?'false':'true';
-             $fieldName = static::KEY; 
+             $fieldName = static::KEY;
              $key = ShopifyApiService::decryptKey($settingsCollection->first()->$fieldName);
              $this->easyApiService->setEnv(static::ENV);
              $this->easyApiService->setAuthorizationKey($key);
-             $payment = $this->easyApiService->getPayment($this->request->get('x_gateway_reference'));
              unset($params['x_signature']);
              $gatewayPassword = $settingsCollection->first()->gateway_password;
              if($this->request->get('x_signature') != $this->shopifyApiService->calculateSignature($params, $gatewayPassword)) {
                 throw new \App\Exceptions\ShopifyApiException('Singnature is wrong while trying to capture');
              }
-             $orderJson = $this->shopifyApiService->getOrder($settingsCollection->first()->access_token, 
+             $orderJson = $this->shopifyApiService->getOrder($settingsCollection->first()->access_token,
              $settingsCollection->first()->shop_url, $this->request->get('x_shopify_order_id'));
              $orderDecoded = json_decode($orderJson, true);
              $this->checkoutObject->setCheckout($orderDecoded['order']);
@@ -128,7 +127,7 @@ class CaptureBase extends \App\Http\Controllers\Controller {
                $this->shopifyReturnParams->setX_Signature($this->shopifyApiService->calculateSignature($this->shopifyReturnParams->getParams(),$pass));
                $this->shopifyApiService->paymentCallback($params['x_url_callback'], $this->shopifyReturnParams->getParams());
                return response('HTTP/1.0 OK', 200);
-            } 
+            }
             $this->eh->handle($e);
             return response('HTTP/1.0 500 Internal Server Error', 500);
          }
