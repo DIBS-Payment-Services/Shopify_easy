@@ -103,11 +103,27 @@ class CheckoutObject {
     }
 
     public function getCustomerFirstName() {
-        return $this->prepareString($this->checkout['customer']['first_name']);
+        $firstName = '';
+        if(!empty($this->checkout['customer']['first_name'])) {
+            $firstName = $this->prepareString($this->checkout['customer']['first_name']);
+        }elseif (!empty($this->checkout['shipping_address']['first_name'])) {
+            $firstName = $this->prepareString($this->checkout['shipping_address']['first_name']);
+        }elseif (!empty($this->checkout['billing_address']['first_name'])) {
+            $firstName = $this->prepareString($this->checkout['billing_address']['first_name']);
+        }
+        return !empty($firstName) ? $firstName : 'FirstName';
     }
 
     public function getcustomerLastName() {
-        return $this->prepareString($this->checkout['customer']['last_name']);
+        $lastName = '';
+        if(!empty($this->checkout['customer']['last_name'])) {
+            $lastName = $this->prepareString($this->checkout['customer']['last_name']);
+        }elseif (!empty($this->checkout['shipping_address']['last_name'])) {
+            $lastName = $this->prepareString($this->checkout['shipping_address']['last_name']);
+        }elseif (!empty($this->checkout['billing_address']['last_name'])) {
+            $lastName = $this->prepareString($this->checkout['billing_address']['last_name']);
+        }
+        return !empty($lastName) ? $lastName : 'LastName';
     }
 
     public function getLineItems() {

@@ -33,8 +33,8 @@ class EasyService implements EasyServiceInterface {
            ];
 
            if($this->customerAddressValidation($checkoutObject)) {
-               $firstName = ($checkoutObject->getCustomerFirstName()) ? $checkoutObject->getCustomerFirstName() : 'FirstName';
-               $lastName = ($checkoutObject->getcustomerLastName()) ? $checkoutObject->getcustomerLastName() : 'LastName';
+               $firstName = $checkoutObject->getCustomerFirstName();
+               $lastName = $checkoutObject->getcustomerLastName();
                $iso2countryCode = $checkoutObject->getIso2countryCode();
                $res = DirectoryCountry::getCountry($iso2countryCode)->first();
                $iso3countryCode = $res->iso3_code;
@@ -46,7 +46,7 @@ class EasyService implements EasyServiceInterface {
                                 'postalCode' =>  $checkoutObject->getPostalCode(),
                                 'city' =>  $checkoutObject->getCity(),
                                 'country' =>  $iso3countryCode]];
-            
+
                 if($checkoutObject->getCompany()) {
                  $consumerData['company'] =  ['name'=> $checkoutObject->getCompany(),
                                              'contact' => ['firstName' => $firstName,
@@ -111,7 +111,6 @@ class EasyService implements EasyServiceInterface {
     }
 
    /**
-    * 
     * @param type $checkout
     * @return type
     */
@@ -196,7 +195,7 @@ class EasyService implements EasyServiceInterface {
                     'taxAmount' => $taxAmount,
                     'grossTotalAmount' => $grossTotalAmount,
                     'netTotalAmount' => $netTotalAmount];
-            
+
             return $shippingLine;
         }
     }
