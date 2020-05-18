@@ -147,7 +147,7 @@ class CaptureBase extends \App\Http\Controllers\Controller {
        header("Content-Length: {$size}");
        header("Connection: close");
        ob_end_flush();
-       ob_flush();
+       //ob_flush();
        flush();
        // Close current session (if it exists)
        if (session_id()) {
