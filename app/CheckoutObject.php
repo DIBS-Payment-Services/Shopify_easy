@@ -73,10 +73,10 @@ class CheckoutObject {
 
     public function getPostalCode() {
         if(!empty($this->checkout['shipping_address']['zip'])) {
-            return $this->checkout['shipping_address']['zip'];
+            return str_replace([' '], '', $this->checkout['shipping_address']['zip']);
         }
         if(!empty($this->checkout['billing_address']['zip'])) {
-            return $this->checkout['billing_address']['zip'];
+            return str_replace([' '], '', $this->checkout['billing_address']['zip']);
         }
    }
 
