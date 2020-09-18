@@ -22,8 +22,6 @@ class RefundEasyHook extends \App\Http\Controllers\Controller
                              \App\Exceptions\Handler $handler)
     {
         try{
-              error_log('RefundEasyHook');
-              
               $data = $request->get('data');
               $paymentDetails = PaymentDetails::getDetailsByPaymentId($data['paymentId']);
               $refundRequestParams = json_decode($paymentDetails->first()->refund_request_params, true);

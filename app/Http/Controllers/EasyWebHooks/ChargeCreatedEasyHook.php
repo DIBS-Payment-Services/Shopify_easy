@@ -28,9 +28,6 @@ class ChargeCreatedEasyHook extends \App\Http\Controllers\Controller {
                              \App\Exceptions\Handler $handler)
     {
           try{
-              
-              error_log('ChargeCreatedEasyHook');
-              
               $data = $request->get('data');
               $paymentDetails = PaymentDetails::getDetailsByPaymentId($data['paymentId']);
               $captureRequestParams = json_decode($paymentDetails->first()->capture_request_params, true);

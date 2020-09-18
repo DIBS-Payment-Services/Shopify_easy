@@ -139,7 +139,6 @@ class CaptureBase extends \App\Http\Controllers\Controller {
     }
 
     private function closeSession() {
-       error_log('startCloseSession');
        ob_start();
        echo "Ok";
        $size = ob_get_length();
@@ -154,6 +153,5 @@ class CaptureBase extends \App\Http\Controllers\Controller {
            session_write_close();
        }
        sleep(30);
-       error_log('endCloseSession');
     }
 }
