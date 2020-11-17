@@ -21,11 +21,11 @@ class EasyService implements EasyServiceInterface {
     }
 
     public function generateRequestParams(array $settings, \App\CheckoutObject $checkoutObject): array {
-          $data = [
+        $data = [
             'order' => [
                 'items' => $this->getRequestObjectItems($checkoutObject, $settings['language']),
                 'amount' => $this->getAmount(),
-                'currency' => $checkoutObject->getCurrency(),
+                'currency' => $this->request->get('x_currency'),
                 'reference' => $this->request->get('x_reference')],
              'checkout' => [
                     'termsUrl' => $settings['terms_and_conditions_url'],

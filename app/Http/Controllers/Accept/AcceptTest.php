@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers\Accept;
 
+use App\Http\Controllers\TestEnv;
 use Illuminate\Http\Request;
 
-class AcceptTest extends AcceptBase implements \App\Http\Controllers\TestEnv
+class AcceptTest extends AcceptBase implements TestEnv
 {
-    
+
     /**
      * Handle the incoming request.
      *

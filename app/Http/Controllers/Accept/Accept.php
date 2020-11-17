@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Accept;
 
 class Accept extends AcceptBase implements \App\Http\Controllers\LiveEnv
 {
-    
+
     /**
      * Handle the incoming request.
      *
@@ -15,5 +15,5 @@ class Accept extends AcceptBase implements \App\Http\Controllers\LiveEnv
     {
         return $this->handle();
     }
-  
+
 }

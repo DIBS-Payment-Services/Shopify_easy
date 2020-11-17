@@ -2,25 +2,31 @@
 
 namespace App\Http\Controllers\EasyWebHooks;
 
+use App\Exceptions\ShopifyApiException;
+use App\Exceptions\ShopifyApiExceptionHandler;
+use App\Http\Controllers\Controller;
+use App\ShopifyReturnParams;
 use Illuminate\Http\Request;
 use App\Service\ShopifyApiService;
 use App\PaymentDetails;
 use App\MerchantSettings;
 use App\Service\EasyApiService;
+use Illuminate\Http\Response;
+use Illuminate\Log\Logger;
 
-class Callback extends \App\Http\Controllers\Controller
+class Callback extends Controller
 {
 
     /**
-     * @var \Illuminate\Log\Logger
+     * @var Logger
      */
     private $logger;
     protected $shopifyApiService;
     private $shopifyApiExceptionHandler;
 
-    public function __construct(ShopifyApiService $service, 
-                                \App\Exceptions\ShopifyApiExceptionHandler $ehsh, 
-                                \Illuminate\Log\Logger $logger) {
+    public function __construct(ShopifyApiService $service,
+                                ShopifyApiExceptionHandler $ehsh,
+                                Logger $logger) {
         $this->shopifyApiService = $service;
         $this->shopifyApiExceptionHandler = $ehsh;
         $this->logger = $logger;
@@ -29,10 +35,14 @@ class Callback extends \App\Http\Controllers\Controller
     /**
      * Handle the incoming request.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @param Request $request
+     * @param ShopifyReturnParams $shopifyReturnParams
+     * @param EasyApiService $easyApiService
+     * @return Response
      */
-    public function __invoke(Request $request, \App\ShopifyReturnParams $shopifyReturnParams, EasyApiService $easyApiService)
+    public function __invoke(Request $request,
+                             ShopifyReturnParams $shopifyReturnParams,
+                             EasyApiService $easyApiService)
     {
         try{
             $data = $request->get('data');
@@ -46,7 +56,6 @@ class Callback extends \App\Http\Controllers\Controller
             $shopifyReturnParams->setX_TransactionType('authorization');
             $pd = PaymentDetails::getDetailsByCheckouId($request->get('x_reference'));
             $ms = MerchantSettings::getSettingsByShopOrigin($pd->first()->shop_url);
-            $secret_key = '';
             if($pd->first()->test == 1) {
                 $shopifyReturnParams->setX_Test();
                 $secret_key = $ms->first()->easy_test_secret_key;
@@ -67,10 +76,10 @@ class Callback extends \App\Http\Controllers\Controller
             $signature = $this->shopifyApiService->calculateSignature($shopifyReturnParams->getParams(), $ms->first()->gateway_password);
             $shopifyReturnParams->setX_Signature($signature);
             $this->shopifyApiService->paymentCallback($request->get('callback_url'), $shopifyReturnParams->getParams());
-        }catch(\App\Exceptions\ShopifyApiException $e) {
+        }catch(ShopifyApiException $e) {
             $this->shopifyApiExceptionHandler->handle($e);
             return response('HTTP/1.0 500 Internal Server Error', 500);
-        } 
+        }
         catch(\Exception $e) {
            return response('HTTP/1.0 500 Internal Server Error', 500);
         }
