@@ -31,7 +31,7 @@ class PayBase extends \App\Http\Controllers\Controller {
 
     public function __construct(ShopifyApiService $service,
                                 Request $request, EasyService $easyService,
-            EasyApiService $easyApiService, CheckoutObject $checkoutObject, 
+            EasyApiService $easyApiService, CheckoutObject $checkoutObject,
             \Illuminate\Log\Logger $logger, \App\Exceptions\EasyApiExceptionHandler $eh,
             \App\Exceptions\ShopifyApiExceptionHandler $ehsh
             ) {
@@ -43,7 +43,7 @@ class PayBase extends \App\Http\Controllers\Controller {
         $this->logger=  $logger;
         $this->easyApiExceptionHandler = $eh;
         $this->shopifyApiExceptionHandler = $ehsh;
-        
+
     }
 
    protected function startPayment(Request $request) {
@@ -102,24 +102,20 @@ class PayBase extends \App\Http\Controllers\Controller {
       $requestParams['shop'] = $settings['shop_url'];
       $requestParams['checkout_token'] = $checkout['token'];
       $paramsToSave = ['checkout_id' => $checkout['id'],
-                 'dibs_paymentid' => $createPaymentResult->paymentId, 
+                 'dibs_paymentid' => $createPaymentResult->paymentId,
                  'shop_url' => $settings['shop_url'],
                  'test' => static::ENV == 'test' ? 1 : 0,
                  'amount' => $request->get('x_amount'),
                  'currency' => $request->get('x_currency'),
-                 'create_payment_items_params' => 
+                 'create_payment_items_params' =>
                  json_encode($createPaymentParams['order']['items'])];
-      DB::enableQueryLog();
-      $this->logger->debug('START add or update Details query................');
+
       PaymentDetails::addOrUpdateDetails($paramsToSave);
-      $this->logger->debug(DB::getQueryLog());
-      $this->logger->debug('last inserted id = ' .  DB::getPdo()->lastInsertId());
-      $this->logger->debug('END update Details query................');
       return redirect($createPaymentResult->hostedPaymentPageUrl . '&' . http_build_query(['language' => $settings['language']]));
    }
 
    protected function showErrorPage($message) {
-       return view('easy-pay-error', ['message' => $message, 
+       return view('easy-pay-error', ['message' => $message,
                    'back_link' => $this->request->get('x_url_complete')]);
    }
 
