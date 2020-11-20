@@ -2,24 +2,33 @@
 
 namespace App\Http\Controllers\EasyWebHooks;
 
+use App\Exceptions\ExceptionHandler;
+use App\Exceptions\ShopifyApiExceptionHandler;
+use App\Http\Controllers\Controller;
+use App\ShopifyReturnParams;
 use Illuminate\Http\Request;
 use App\Service\ShopifyApiService;
 use App\PaymentDetails;
 use App\MerchantSettings;
+use Illuminate\Http\Response;
 
-class RefundEasyHook extends \App\Http\Controllers\Controller
+class RefundEasyHook extends Controller
 {
     /**
      * Handle the incoming request.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @param Request $request
+     * @param ShopifyApiService $shopifyApiService
+     * @param ShopifyReturnParams $shopifyReturnParams
+     * @param ShopifyApiExceptionHandler $ehsh
+     * @param ExceptionHandler $handler
+     * @return Response
      */
     public function __invoke(Request $request,
                              ShopifyApiService $shopifyApiService,
-                             \App\ShopifyReturnParams $shopifyReturnParams,
-                             \App\Exceptions\ShopifyApiExceptionHandler $ehsh,
-                             \App\Exceptions\Handler $handler)
+                             ShopifyReturnParams $shopifyReturnParams,
+                             ShopifyApiExceptionHandler $ehsh,
+                             ExceptionHandler $handler)
     {
         try{
               $data = $request->get('data');

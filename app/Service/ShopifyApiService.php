@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Exceptions\ShopifyApiException;
 use \Illuminate\Http\Request;
 
 class ShopifyApiService  implements ShopifyApiServiceInterface{
@@ -19,7 +20,7 @@ class ShopifyApiService  implements ShopifyApiServiceInterface{
     }
 
     /**
-     * 
+     *
      * @param Request $request
      * @return string|null
      */
@@ -36,7 +37,7 @@ class ShopifyApiService  implements ShopifyApiServiceInterface{
     }
 
     /**
-     * 
+     *
      * @param string $acessToken
      * @param string $shopUrl
      * @return string|null
@@ -49,7 +50,7 @@ class ShopifyApiService  implements ShopifyApiServiceInterface{
     }
 
     /**
-     * 
+     *
      * @param string $acessToken
      * @param string $shopUrl
      * @return string|null
@@ -62,7 +63,7 @@ class ShopifyApiService  implements ShopifyApiServiceInterface{
     }
 
     /**
-     * 
+     *
      * @param string $acessToken
      * @param string $shopUrl
      * @param string $checkoutId
@@ -83,7 +84,7 @@ class ShopifyApiService  implements ShopifyApiServiceInterface{
     }
 
     /**
-     * 
+     *
      * @param string $url
      * @param array $params
      */
@@ -93,7 +94,7 @@ class ShopifyApiService  implements ShopifyApiServiceInterface{
     }
 
     /**
-     * 
+     *
      * @param array $params
      * @return array
      */
@@ -122,7 +123,7 @@ class ShopifyApiService  implements ShopifyApiServiceInterface{
        try{
         $this->client->post($url, $params);
         $resp = $this->handleResponse($this->client);
-       } catch(\App\Exceptions\ShopifyApiException $e) {
+       } catch(ShopifyApiException $e) {
 
        }
    }
@@ -165,7 +166,7 @@ class ShopifyApiService  implements ShopifyApiServiceInterface{
           return $client->getResponse();
       } else {
           $errorMessage = $client->getHttpStatus() ? $client->getResponse() : $client->getErrorMessage();
-          throw new \App\Exceptions\ShopifyApiException($errorMessage, $client->getHttpStatus());
+          throw new ShopifyApiException($errorMessage, $client->getHttpStatus());
       }
    }
 }

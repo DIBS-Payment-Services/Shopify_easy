@@ -2,18 +2,22 @@
 
 namespace App\Http\Controllers\Accept;
 
+use App\Exceptions\EasyApiExceptionHandler;
+use App\Exceptions\ExceptionHandler;
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Service\ShopifyApiService;
 use App\MerchantSettings;
 use App\Service\EasyApiService;
 use App\PaymentDetails;
+use Illuminate\Log\Logger;
 
 /**
  * Description of AcceptBase
  *
  * @author mabe
  */
-class AcceptBase extends \App\Http\Controllers\Controller {
+class AcceptBase extends Controller {
 
     /**
      * @var Request
@@ -21,7 +25,7 @@ class AcceptBase extends \App\Http\Controllers\Controller {
     private $request;
 
     /**
-     * @var \App\Exceptions\EasyApiExceptionHandler
+     * @var EasyApiExceptionHandler
      */
     private $eh;
 
@@ -38,12 +42,12 @@ class AcceptBase extends \App\Http\Controllers\Controller {
 
     private $logger;
 
-    public function __construct(EasyApiService $easyApiService, 
-                                ShopifyApiService $shopifyApiService, 
+    public function __construct(EasyApiService $easyApiService,
+                                ShopifyApiService $shopifyApiService,
                                 Request $request,
-                                \App\Exceptions\EasyApiExceptionHandler $eh,
-                                \App\Exceptions\Handler $exHandler,
-                                \Illuminate\Log\Logger $logger,
+                                EasyApiExceptionHandler $eh,
+                                ExceptionHandler $exHandler,
+                                Logger $logger,
                                 \App\ShopifyReturnParams $shopifyReturnParams) {
         $this->easyApiService = $easyApiService;
         $this->shopifyApiService = $shopifyApiService;
@@ -93,7 +97,6 @@ class AcceptBase extends \App\Http\Controllers\Controller {
               return response('HTTP/1.0 500 Internal Server Error', 500);
         } catch(\Exception $e) {
               $this->exHandler->report($e);
-              $this->logger->debug($this->request);
               return response('HTTP/1.0 500 Internal Server Error', 500);
         }
     }

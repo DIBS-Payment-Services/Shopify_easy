@@ -2,6 +2,11 @@
 
 namespace App\Http\Controllers\EasyWebHooks;
 
+use App\Exceptions\ExceptionHandler;
+use App\Exceptions\ShopifyApiException;
+use App\Exceptions\ShopifyApiExceptionHandler;
+use App\Http\Controllers\Controller;
+use App\ShopifyReturnParams;
 use Illuminate\Http\Request;
 use App\Service\ShopifyApiService;
 use App\MerchantSettings;
@@ -13,7 +18,7 @@ use App\PaymentDetails;
  *
  * @author mabe
  */
-class ChargeCreatedEasyHook extends \App\Http\Controllers\Controller {
+class ChargeCreatedEasyHook extends Controller {
 
      /**
      * Handle the incoming request.
@@ -23,10 +28,11 @@ class ChargeCreatedEasyHook extends \App\Http\Controllers\Controller {
      */
     public function __invoke(Request $request,
                              ShopifyApiService $shopifyApiService,
-                             \App\ShopifyReturnParams $shopifyReturnParams,
-                             \App\Exceptions\ShopifyApiExceptionHandler $ehsh,
-                             \App\Exceptions\Handler $handler)
+                             ShopifyReturnParams $shopifyReturnParams,
+                             ShopifyApiExceptionHandler $ehsh,
+                             ExceptionHandler $handler)
     {
+
           try{
               $data = $request->get('data');
               $paymentDetails = PaymentDetails::getDetailsByPaymentId($data['paymentId']);
@@ -44,11 +50,11 @@ class ChargeCreatedEasyHook extends \App\Http\Controllers\Controller {
                   $shopifyReturnParams->setX_Signature($shopifyApiService->calculateSignature($shopifyReturnParams->getParams(),$pass));
                   $shopifyApiService->paymentCallback($captureRequestParams['x_url_callback'], $shopifyReturnParams->getParams());
               }
-          } catch(\App\Exceptions\ShopifyApiException $e) {
+          } catch(ShopifyApiException $e) {
                 $ehsh->handle($e, $request->all());
             return response('HTTP/1.0 500 Internal Server Error', 500);
           } catch(\Exception $e) {
-                $handler->report($e);
+            $handler->report($e);
             return response('HTTP/1.0 500 Internal Server Error', 500);
           }
     }
