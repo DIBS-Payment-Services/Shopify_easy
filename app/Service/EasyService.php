@@ -86,7 +86,8 @@ class EasyService implements EasyServiceInterface {
              $data['checkout']['integrationType'] = 'HostedPaymentPage';
              $appUrl = env('SHOPIFY_APP_URL');
              $callbackUrl = $this->request->get('x_url_callback');
-             $reservationCreatedurl = "https://{$appUrl}/callback?callback_url={$callbackUrl}&x_reference={$x_reference}&shop_url={$shop_url}";
+             $id = $this->request->get('id');
+             $reservationCreatedurl = "https://{$appUrl}/callback?callback_url={$callbackUrl}&x_reference={$x_reference}&shop_url={$shop_url}&id={$id}";
              $chargeCreatedHookUrl = "https://{$appUrl}/charge_created?x_reference={$x_reference}";
              $refundCompletedWebhook = "https://{$appUrl}/refund_hook?x_reference={$x_reference}";
              $cancelCompletedWebhook = "https://{$appUrl}/cancel_hook?x_reference={$x_reference}";
@@ -107,7 +108,7 @@ class EasyService implements EasyServiceInterface {
                      ['eventName' => 'payment.cancel.created',
                       'url' => $cancelCompletedWebhook,
                       'authorization' => substr(str_shuffle(MD5(microtime())), 0, 10)]]];
-             return $data;
+              return $data;
     }
 
    /**

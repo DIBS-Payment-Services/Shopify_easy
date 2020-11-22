@@ -74,9 +74,32 @@ class PayBase extends \App\Http\Controllers\Controller {
       $this->easyApiService->setAuthorizationKey($key);
       $this->easyApiService->setEnv(static::ENV);
       $this->checkoutObject->setCheckout($checkout);
-      $createPaymentParams = $this->easyService->generateRequestParams($settings, $this->checkoutObject);
 
-      $result = $this->easyApiService->createPayment(json_encode($createPaymentParams));
+      $paramsToSave = ['checkout_id' => $checkout['id'],
+           'dibs_paymentid' => 'paymentId',
+           'shop_url' => $settings['shop_url'],
+           'test' => static::ENV == 'test' ? 1 : 0,
+           'amount' => $request->get('x_amount'),
+           'currency' => $request->get('x_currency'),
+           'create_payment_items_params' =>'items'];
+
+       PaymentDetails::addOrUpdateDetails($paramsToSave);
+
+       $request->merge(['id'=> DB::getPdo()->lastInsertId()]);
+
+       $createPaymentParams = $this->easyService->generateRequestParams($settings, $this->checkoutObject);
+
+       $result = $this->easyApiService->createPayment(json_encode($createPaymentParams));
+
+       $createPaymentResult = json_decode($result->getResponse());
+
+       $paramsToSave = ['checkout_id' => $checkout['id'],
+           'dibs_paymentid' => $createPaymentResult->paymentId,
+           'create_payment_items_params' =>
+               json_encode($createPaymentParams['order']['items'])];
+
+       PaymentDetails::addOrUpdateDetails($paramsToSave);
+
       if($result->getHttpStatus() == 400) {
           $errorObject = json_decode($result->getResponse(), true);
           foreach ($errorObject['errors'] as $key => $value) {
@@ -95,22 +118,7 @@ class PayBase extends \App\Http\Controllers\Controller {
           $errorMessage = $result->getHttpStatus()? $result->getResponse() : $result->getErrorMessage();
           throw new \App\Exceptions\EasyException($errorMessage, $result->getHttpStatus());
       }
-      $createPaymentResult = json_decode($result->getResponse());
-      $requestParams = $request->all();
-      $requestParams['paymentId'] = $createPaymentResult->paymentId;
-      $requestParams['gateway_password'] = $settings['gateway_password'];
-      $requestParams['shop'] = $settings['shop_url'];
-      $requestParams['checkout_token'] = $checkout['token'];
-      $paramsToSave = ['checkout_id' => $checkout['id'],
-                 'dibs_paymentid' => $createPaymentResult->paymentId,
-                 'shop_url' => $settings['shop_url'],
-                 'test' => static::ENV == 'test' ? 1 : 0,
-                 'amount' => $request->get('x_amount'),
-                 'currency' => $request->get('x_currency'),
-                 'create_payment_items_params' =>
-                 json_encode($createPaymentParams['order']['items'])];
 
-      PaymentDetails::addOrUpdateDetails($paramsToSave);
       return redirect($createPaymentResult->hostedPaymentPageUrl . '&' . http_build_query(['language' => $settings['language']]));
    }
 

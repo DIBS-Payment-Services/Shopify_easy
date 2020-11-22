@@ -10,12 +10,17 @@ use Illuminate\Database\Eloquent\Model;
  * @author mabe
  */
 class PaymentDetails extends Model {
-    
+
     protected $table = 'payment_details';
     protected $fillable = ['amount', 'currency', 'checkout_id', 'dibs_paymentid', 'shop_url', 'test', 'create_payment_items_params'];
 
-    public static function getDetailsByCheckouId($checkoutId) {
-       return self::query()->where('checkout_id', $checkoutId)->get();
+    public static function getDetailsByCheckouId($checkoutId)
+    {
+        return self::query()->where('checkout_id', $checkoutId)->get();
+    }
+
+    public static function getDetailsBytId($id) {
+        return self::query()->where('id', $id)->get();
     }
 
     public static function addOrUpdateDetails($params) {
