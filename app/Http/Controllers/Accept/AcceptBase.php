@@ -64,7 +64,7 @@ class AcceptBase extends Controller {
             $settingsCollection = MerchantSettings::getSettingsByShopOrigin($this->request->get('origin'));
             $this->easyApiService->setAuthorizationKey(ShopifyApiService::decryptKey($settingsCollection->first()->$keyField));
             $this->easyApiService->setEnv(static::ENV);
-            $collectionPaymentDetail = PaymentDetails::getDetailsByCheckouId($this->request->get('checkout_id'));
+            $collectionPaymentDetail = PaymentDetails::getDetailsBytId($this->request->get('id'));
             $payment = $this->easyApiService->getPayment($collectionPaymentDetail->first()->dibs_paymentid);
             if(!empty($payment->getPaymentType())) {
                 $this->shopifyReturnParams->setX_Amount($collectionPaymentDetail->first()->amount);
