@@ -65,6 +65,10 @@ class AcceptBase extends Controller {
             $this->easyApiService->setAuthorizationKey(ShopifyApiService::decryptKey($settingsCollection->first()->$keyField));
             $this->easyApiService->setEnv(static::ENV);
             $collectionPaymentDetail = PaymentDetails::getDetailsBytId($this->request->get('id'));
+
+            $this->logger->debug('AcceptBase: id from request string: ' . $this->request->get('id'));
+            $this->logger->debug('AcceptBase: checkout_id from request string: ' . $this->request->get('checkout_id'));
+
             if($collectionPaymentDetail->count() < 1) {
                 $collectionPaymentDetail = PaymentDetails::getDetailsByCheckouId($this->request->get('checkout_id'));
             }
