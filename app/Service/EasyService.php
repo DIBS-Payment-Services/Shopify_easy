@@ -82,8 +82,10 @@ class EasyService implements EasyServiceInterface {
              $shop_url = $settings['shop_url'];
              $x_reference = $this->request->get('x_reference');
              $x_url_cancel = $this->request->get('x_url_cancel');
+
              $id = $this->request->get('id');
-             $this->logger->debug( 'EasyService row ID: ' . $id);
+             $transactionId = $this->request->get('transactionId');
+
              $data['checkout']['returnUrl'] = "$url?x_url_complete={$x_url_complete}&origin={$shop_url}&checkout_id={$x_reference}&x_url_cancel={$x_url_cancel}&id={$id}";
              $data['checkout']['integrationType'] = 'HostedPaymentPage';
              $appUrl = env('SHOPIFY_APP_URL');

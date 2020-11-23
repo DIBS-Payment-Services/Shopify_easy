@@ -85,6 +85,8 @@ class PayBase extends \App\Http\Controllers\Controller {
 
        PaymentDetails::addOrUpdateDetails($paramsToSave);
 
+       $id = DB::getPdo()->lastInsertId();
+
        $request->merge(['id'=> DB::getPdo()->lastInsertId()]);
 
        $createPaymentParams = $this->easyService->generateRequestParams($settings, $this->checkoutObject);
@@ -93,10 +95,16 @@ class PayBase extends \App\Http\Controllers\Controller {
 
        $createPaymentResult = json_decode($result->getResponse());
 
+       $transactionId = $createPaymentResult->paymentId;
+
+       $this->logger->debug('last inserted id = '. $id . '  Transactionid = '. $transactionId . ' Checkoutid = ' . $checkout['id']);
+
        $paramsToSave = ['checkout_id' => $checkout['id'],
            'dibs_paymentid' => $createPaymentResult->paymentId,
            'create_payment_items_params' =>
                json_encode($createPaymentParams['order']['items'])];
+
+       $request->merge(['id'=> DB::getPdo()->lastInsertId()]);
 
        PaymentDetails::addOrUpdateDetails($paramsToSave);
 
