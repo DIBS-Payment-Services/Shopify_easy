@@ -3,6 +3,7 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Description of PaymentDetails
@@ -24,23 +25,30 @@ class PaymentDetails extends Model {
     }
 
     public static function addOrUpdateDetails($params) {
-        self::query()->updateOrCreate(['checkout_id' => $params['checkout_id']], $params);
+        $result = self::query()->updateOrCreate(['checkout_id' => $params['checkout_id']], $params);
+        DB::disconnect();
+        return $result;
     }
 
     public static function getDetailsByPaymentId($paymentId) {
-       return self::query()->where('dibs_paymentid', $paymentId)->get();
+       $result =  self::query()->where('dibs_paymentid', $paymentId)->get();
+        DB::disconnect();
+        return $result;
     }
 
     public static function persistCaptureRequestParams($checkoutid, $data) {
         self::query()->where(['checkout_id' => $checkoutid])->update(['capture_request_params' => $data]);
+        DB::disconnect();
     }
 
     public static function persistRefundRequestParams($checkoutid, $data) {
         self::query()->where(['checkout_id' => $checkoutid])->update(['refund_request_params' => $data]);
+        DB::disconnect();
     }
 
     public static function persistCancelRequestParams($checkoutid, $data) {
         self::query()->where(['checkout_id' => $checkoutid])->update(['cancel_request_params' => $data]);
+        DB::disconnect();
     }
 
 
