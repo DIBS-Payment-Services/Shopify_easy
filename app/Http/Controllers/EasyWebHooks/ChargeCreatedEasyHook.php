@@ -32,7 +32,6 @@ class ChargeCreatedEasyHook extends Controller {
                              ShopifyApiExceptionHandler $ehsh,
                              ExceptionHandler $handler)
     {
-
           try{
               $data = $request->get('data');
               $paymentDetails = PaymentDetails::getDetailsByPaymentId($data['paymentId']);

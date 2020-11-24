@@ -54,7 +54,7 @@ class Callback extends Controller
             $shopifyReturnParams->setX_Result('completed');
             $shopifyReturnParams->setX_Timestamp(date("Y-m-d\TH:i:s\Z"));
             $shopifyReturnParams->setX_TransactionType('authorization');
-            $pd = PaymentDetails::getDetailsBytId($request->get('id'));
+            $pd = PaymentDetails::getDetailsByCheckouId($request->get('x_reference'));
             $ms = MerchantSettings::getSettingsByShopOrigin($pd->first()->shop_url);
             if($pd->first()->test == 1) {
                 $shopifyReturnParams->setX_Test();

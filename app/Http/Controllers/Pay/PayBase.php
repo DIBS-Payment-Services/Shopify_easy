@@ -75,38 +75,9 @@ class PayBase extends \App\Http\Controllers\Controller {
       $this->easyApiService->setEnv(static::ENV);
       $this->checkoutObject->setCheckout($checkout);
 
-      $paramsToSave = ['checkout_id' => $checkout['id'],
-           'dibs_paymentid' => 'paymentId',
-           'shop_url' => $settings['shop_url'],
-           'test' => static::ENV == 'test' ? 1 : 0,
-           'amount' => $request->get('x_amount'),
-           'currency' => $request->get('x_currency'),
-           'create_payment_items_params' =>'items'];
+      $createPaymentParams = $this->easyService->generateRequestParams($settings, $this->checkoutObject);
 
-       PaymentDetails::addOrUpdateDetails($paramsToSave);
-
-       $id = DB::getPdo()->lastInsertId();
-
-       $request->merge(['id'=> DB::getPdo()->lastInsertId()]);
-
-       $createPaymentParams = $this->easyService->generateRequestParams($settings, $this->checkoutObject);
-
-       $result = $this->easyApiService->createPayment(json_encode($createPaymentParams));
-
-       $createPaymentResult = json_decode($result->getResponse());
-
-       $transactionId = $createPaymentResult->paymentId;
-
-       $this->logger->debug('last inserted id = '. $id . '  Transactionid = '. $transactionId . ' Checkoutid = ' . $checkout['id']);
-
-       $paramsToSave = ['checkout_id' => $checkout['id'],
-           'dibs_paymentid' => $createPaymentResult->paymentId,
-           'create_payment_items_params' =>
-               json_encode($createPaymentParams['order']['items'])];
-
-       $request->merge(['id'=> DB::getPdo()->lastInsertId()]);
-
-       PaymentDetails::addOrUpdateDetails($paramsToSave);
+      $result = $this->easyApiService->createPayment(json_encode($createPaymentParams));
 
       if($result->getHttpStatus() == 400) {
           $errorObject = json_decode($result->getResponse(), true);
@@ -126,6 +97,21 @@ class PayBase extends \App\Http\Controllers\Controller {
           $errorMessage = $result->getHttpStatus()? $result->getResponse() : $result->getErrorMessage();
           throw new \App\Exceptions\EasyException($errorMessage, $result->getHttpStatus());
       }
+
+      $createPaymentResult = json_decode($result->getResponse());
+      $transactionId = $createPaymentResult->paymentId;
+      $paramsToSave = ['checkout_id' => $checkout['id'],
+           'dibs_paymentid' => $transactionId,
+           'shop_url' => $settings['shop_url'],
+           'test' => static::ENV == 'test' ? 1 : 0,
+           'amount' => $request->get('x_amount'),
+           'currency' => $request->get('x_currency'),
+           'create_payment_items_params' =>
+            json_encode($createPaymentParams['order']['items'])];
+
+      PaymentDetails::addOrUpdateDetails($paramsToSave);
+      $id = DB::getPdo()->lastInsertId();
+      $this->logger->debug('last inserted id = '. $id . '  Transactionid = '. $transactionId . ' Checkoutid = ' . $checkout['id']);
 
       return redirect($createPaymentResult->hostedPaymentPageUrl . '&' . http_build_query(['language' => $settings['language']]));
    }
