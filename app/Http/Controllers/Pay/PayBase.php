@@ -109,9 +109,7 @@ class PayBase extends \App\Http\Controllers\Controller {
            'create_payment_items_params' =>
             json_encode($createPaymentParams['order']['items'])];
 
-      $result = PaymentDetails::addOrUpdateDetails($paramsToSave);
-
-      $id = json_decode($result, true)['id'];
+      $id = PaymentDetails::addOrUpdateDetails($paramsToSave);
 
       $this->logger->debug('last inserted id = '. $id . '  Transactionid = '. $transactionId . ' Checkoutid = ' . $checkout['id']);
 

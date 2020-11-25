@@ -27,7 +27,8 @@ class PaymentDetails extends Model {
     }
 
     public static function addOrUpdateDetails($params) {
-        $result = self::query()->updateOrCreate(['checkout_id' => $params['checkout_id']], $params);
+        self::query()->insert($params);
+        $result = DB::getPdo()->lastInsertId();
         DB::disconnect();
         return $result;
     }
