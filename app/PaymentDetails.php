@@ -17,7 +17,9 @@ class PaymentDetails extends Model {
 
     public static function getDetailsByCheckouId($checkoutId)
     {
-        return self::query()->where('checkout_id', $checkoutId)->orderBy('created_at','desc')->limit(1)->get();
+        $result = self::query()->where('checkout_id', $checkoutId)->get();
+        DB::disconnect();
+        return $result;
     }
 
     public static function getDetailsBytId($id) {
@@ -25,7 +27,7 @@ class PaymentDetails extends Model {
     }
 
     public static function addOrUpdateDetails($params) {
-        $result = self::query()->insert($params);
+        $result = self::query()->updateOrCreate(['checkout_id' => $params['checkout_id']], $params);
         DB::disconnect();
         return $result;
     }
