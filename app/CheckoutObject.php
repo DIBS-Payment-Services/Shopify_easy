@@ -146,8 +146,8 @@ class CheckoutObject {
         return $this->checkout['total_tax'];
     }
 
-    protected function prepareString($tring) {
-        $string = substr($tring, 0, 128);
+    protected function prepareString($string) {
+        $string = substr($string, 0, 128);
         return trim(preg_replace(self::ALLOWED_CHARACTERS_PATTERN, '', $string));
    }
 
