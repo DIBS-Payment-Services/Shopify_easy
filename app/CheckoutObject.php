@@ -148,7 +148,7 @@ class CheckoutObject {
 
     protected function prepareString($tring) {
         $string = substr($tring, 0, 128);
-        return preg_replace(self::ALLOWED_CHARACTERS_PATTERN, '', $string);
-    }
+        return trim(preg_replace(self::ALLOWED_CHARACTERS_PATTERN, '', $string));
+   }
 
 }
