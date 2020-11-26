@@ -31,9 +31,14 @@ class OrderCreatedHook extends Controller{
 
         $logger->debug('++++++++++++++++++++++++++++++++++++++++++++++++++++++++++');
         $logger->debug('Order created shopify webhook start');
-        $logger->debug('shop url = ' . $collectionPaymentDetail->first()->shop_url);
 
-        if(!strstr($request->get('gateway'), 'dibs_easy_checkout')) {
+        $gateway_aliases = ['dibs_easy_checkout',
+                            'nets_checkout',
+                            'easy_checkout',
+                            'dibs_easy_checkout_test'];
+
+
+        if(!in_array($request->get('gateway'), $gateway_aliases)) {
             $logger->debug($request->get('gateway'));
             return response('HTTP/1.0 500 Internal Server Error', 200);
         }
