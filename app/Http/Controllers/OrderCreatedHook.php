@@ -21,17 +21,24 @@ class OrderCreatedHook extends Controller{
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function __invoke(EasyApiService $easyApiService, 
-                             Request $request, 
+    public function __invoke(EasyApiService $easyApiService,
+                             Request $request,
                              \App\Exceptions\EasyApiExceptionHandler $eh,
                              \App\Exceptions\Handler $handler,
                              \Illuminate\Log\Logger $logger)
     {
+        $collectionPaymentDetail = PaymentDetails::getDetailsByCheckouId($request->get('checkout_id'));
+
+        $logger->debug('++++++++++++++++++++++++++++++++++++++++++++++++++++++++++');
+        $logger->debug('Order created shopify webhook start');
+        $logger->debug('shop url = ' . $collectionPaymentDetail->first()->shop_url);
+
         if(!strstr($request->get('gateway'), 'dibs_easy_checkout')) {
+            $logger->debug($request->get('gateway'));
             return response('HTTP/1.0 500 Internal Server Error', 200);
         }
         try{
-            $collectionPaymentDetail = PaymentDetails::getDetailsByCheckouId($request->get('checkout_id'));
+
             if( $collectionPaymentDetail->count() == 0) {
                 return response('OK', 200);
             }
@@ -46,9 +53,14 @@ class OrderCreatedHook extends Controller{
             }
             $easyApiService->setAuthorizationKey($key);
             $payment = $easyApiService->getPayment($paymentId);
-            $jsonData = json_encode(['reference' => $request->get('name'), 
+            $jsonData = json_encode(['reference' => $request->get('name'),
                                      'checkoutUrl' => $payment->getCheckoutUrl()]);
+
+            $logger->debug('Order created shopify webhook updateReference start');
             $easyApiService->updateReference($paymentId, $jsonData);
+            $logger->debug('Order created shopify webhook updateReference finish');
+            $logger->debug('shop url is = ' . $collectionPaymentDetail->first()->shop_url);
+            $logger->debug('-----------------------------------------------------------');
         } catch(\App\Exceptions\EasyException $e ) {
            $eh->handle($e);
            return response('HTTP/1.0 500 Internal Server Error', 500);
