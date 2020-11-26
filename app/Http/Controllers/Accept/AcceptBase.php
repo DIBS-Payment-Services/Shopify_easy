@@ -11,6 +11,7 @@ use App\MerchantSettings;
 use App\Service\EasyApiService;
 use App\PaymentDetails;
 use Illuminate\Log\Logger;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Description of AcceptBase
@@ -64,7 +65,11 @@ class AcceptBase extends Controller {
             $settingsCollection = MerchantSettings::getSettingsByShopOrigin($this->request->get('origin'));
             $this->easyApiService->setAuthorizationKey(ShopifyApiService::decryptKey($settingsCollection->first()->$keyField));
             $this->easyApiService->setEnv(static::ENV);
+
+            DB::enableQueryLog();
             $collectionPaymentDetail = PaymentDetails::getDetailsByCheckouId($this->request->get('checkout_id'));
+            $this->logger->debug(DB::getQueryLog());
+
             $payment = $this->easyApiService->getPayment($collectionPaymentDetail->first()->dibs_paymentid);
             if(!empty($payment->getPaymentType())) {
                 $this->shopifyReturnParams->setX_Amount($collectionPaymentDetail->first()->amount);

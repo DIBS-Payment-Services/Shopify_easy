@@ -17,7 +17,7 @@ class PaymentDetails extends Model {
 
     public static function getDetailsByCheckouId($checkoutId)
     {
-        $result = self::query()->where('checkout_id', $checkoutId)->get();
+        $result = self::query()->select(['shop_url', 'dibs_paymentid', 'amount', 'currency', 'dibs_paymentid', 'checkout_id', 'test'])->where('checkout_id', $checkoutId)->get();
         DB::disconnect();
         return $result;
     }
