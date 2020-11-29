@@ -45,6 +45,33 @@ class Callback extends Controller
                              EasyApiService $easyApiService)
     {
         try{
+            $pd = PaymentDetails::getDetailsByCheckouId($request->get('x_reference'))->last();
+            $checkoutTimeStart = $pd->created_at;
+
+            $ms = MerchantSettings::getSettingsByShopOrigin($pd->shop_url);
+            if($pd->test == 1) {
+                $shopifyReturnParams->setX_Test();
+                $secret_key = $ms->first()->easy_test_secret_key;
+                $easyApiService->setEnv('test');
+            }else {
+                $secret_key = $ms->first()->easy_secret_key;
+                $easyApiService->setEnv('live');
+            }
+            $secret_key = $this->shopifyApiService->decryptKey($secret_key);
+
+            $easyApiService->setAuthorizationKey($secret_key);
+
+            if($easyApiService->isPaymentTimeoutEnded($checkoutTimeStart)) {
+                // cancel the payment on the gateway because order wasn't placed
+                $items = $pd->create_payment_items_params;
+                $res = json_decode($items, true);
+                $data['amount'] = (int)round($pd->amount * 100);
+                foreach($res as $r) {
+                    $data['orderItems'][] = $r;
+                }
+               $easyApiService->voidPayment($pd->dibs_paymentid, json_encode($data));
+               die('stop processing callback');
+            }
             $data = $request->get('data');
             $shopifyReturnParams->setX_AccountId($request->get('merchantId'));
             $shopifyReturnParams->setX_Amount($data['order']['amount']['amount'] / 100);
@@ -54,18 +81,6 @@ class Callback extends Controller
             $shopifyReturnParams->setX_Result('completed');
             $shopifyReturnParams->setX_Timestamp(date("Y-m-d\TH:i:s\Z"));
             $shopifyReturnParams->setX_TransactionType('authorization');
-            $pd = PaymentDetails::getDetailsByCheckouId($request->get('x_reference'));
-            $ms = MerchantSettings::getSettingsByShopOrigin($pd->first()->shop_url);
-            if($pd->first()->test == 1) {
-                $shopifyReturnParams->setX_Test();
-                $secret_key = $ms->first()->easy_test_secret_key;
-                $easyApiService->setEnv('test');
-            }else {
-                 $secret_key = $ms->first()->easy_secret_key;
-                 $easyApiService->setEnv('live');
-            }
-            $secret_key = $this->shopifyApiService->decryptKey($secret_key);
-            $easyApiService->setAuthorizationKey($secret_key);
             $payment = $easyApiService->getPayment($data['paymentId']);
             $shopifyReturnParams->setX_PaymentType($payment->getPaymentType());
             if( $payment->getPaymentType() == 'CARD') {
@@ -77,10 +92,17 @@ class Callback extends Controller
             $shopifyReturnParams->setX_Signature($signature);
             $this->shopifyApiService->paymentCallback($request->get('callback_url'), $shopifyReturnParams->getParams());
         }catch(ShopifyApiException $e) {
+
             $this->shopifyApiExceptionHandler->handle($e);
             return response('HTTP/1.0 500 Internal Server Error', 500);
+
+        }catch(\App\Exceptions\EasyException $e) {
+            $this->logger->debug( $e->getCode() );
+            $this->logger->debug( $e->getTraceAsString() );
         }
         catch(\Exception $e) {
+           $this->logger->debug( $e->getFile() );
+           $this->logger->debug( $e->getTraceAsString() );
            return response('HTTP/1.0 500 Internal Server Error', 500);
         }
     }

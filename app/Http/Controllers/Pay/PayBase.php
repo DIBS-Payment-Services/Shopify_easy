@@ -97,9 +97,10 @@ class PayBase extends \App\Http\Controllers\Controller {
           $errorMessage = $result->getHttpStatus()? $result->getResponse() : $result->getErrorMessage();
           throw new \App\Exceptions\EasyException($errorMessage, $result->getHttpStatus());
       }
-
       $createPaymentResult = json_decode($result->getResponse());
       $transactionId = $createPaymentResult->paymentId;
+
+      $TimeNow = new \DateTime();
       $paramsToSave = ['checkout_id' => $checkout['id'],
            'dibs_paymentid' => $transactionId,
            'shop_url' => $settings['shop_url'],
@@ -107,14 +108,11 @@ class PayBase extends \App\Http\Controllers\Controller {
            'amount' => $request->get('x_amount'),
            'currency' => $request->get('x_currency'),
            'create_payment_items_params' =>
-            json_encode($createPaymentParams['order']['items'])];
-
+            json_encode($createPaymentParams['order']['items']),
+      ];
       $result = PaymentDetails::addOrUpdateDetails($paramsToSave);
-
       $id = json_decode($result, true)['id'];
-
       $this->logger->debug('last inserted id = '. $id . '  Transactionid = '. $transactionId . ' Checkoutid = ' . $checkout['id']);
-
       return redirect($createPaymentResult->hostedPaymentPageUrl . '&' . http_build_query(['language' => $settings['language']]));
    }
 

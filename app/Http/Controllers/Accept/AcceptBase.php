@@ -60,11 +60,17 @@ class AcceptBase extends Controller {
 
     protected function handle() {
         try{
+            $collectionPaymentDetail = PaymentDetails::getDetailsByCheckouId($this->request->get('checkout_id'));
+            $checkoutTimeStart = $collectionPaymentDetail->first()->created_at;
+            if($this->easyApiService->isPaymentTimeoutEnded($checkoutTimeStart)) {
+                // redirect to cancel url
+                return redirect($this->request->get('x_url_cancel'));
+            }
+
             $keyField = static::KEY;
             $settingsCollection = MerchantSettings::getSettingsByShopOrigin($this->request->get('origin'));
             $this->easyApiService->setAuthorizationKey(ShopifyApiService::decryptKey($settingsCollection->first()->$keyField));
             $this->easyApiService->setEnv(static::ENV);
-            $collectionPaymentDetail = PaymentDetails::getDetailsByCheckouId($this->request->get('checkout_id'));
             $payment = $this->easyApiService->getPayment($collectionPaymentDetail->first()->dibs_paymentid);
             if(!empty($payment->getPaymentType())) {
                 $this->shopifyReturnParams->setX_Amount($collectionPaymentDetail->first()->amount);

@@ -46,30 +46,30 @@ class EasyApiService implements EasyApiServiceInterface{
     }
 
     /**
-     * 
+     *
      * @param string $data
      * @return \App\Service\Api\Client
      */
     public function createPayment(string $data) {
       $this->client->setHeader('commercePlatformTag:', 'easy_shopify_inject');
-      $url = $this->getCreatePaymentUrl();  
+      $url = $this->getCreatePaymentUrl();
       $this->client->post($url, $data);
       return $this->client;
     }
 
     /**
-     * 
+     *
      * @param string $paymentId
      * @return \App\Payment
      */
     public function getPayment(string $paymentId) {
-      $url = $this->getGetPaymentUrl($paymentId); 
+      $url = $this->getGetPaymentUrl($paymentId);
       $this->client->get($url);
       return new \App\Payment($this->handleResponse($this->client));
     }
 
    public function updateReference(string $paymentId, string $data) {
-      $url = $this->getUpdateReferenceUrl($paymentId); 
+      $url = $this->getUpdateReferenceUrl($paymentId);
       $this->client->put($url, $data, true);
       $this->handleResponse($this->client);
     }
@@ -100,6 +100,7 @@ class EasyApiService implements EasyApiServiceInterface{
           if(0 == $client->getHttpStatus()) {
               $errorMessage = $client->getErrorMessage();
           }
+          error_log($errorMessage);
           throw new \App\Exceptions\EasyException($errorMessage, $client->getHttpStatus());
       }
     }
@@ -128,14 +129,29 @@ class EasyApiService implements EasyApiServiceInterface{
     }
 
     public function getVoidPaymentUrl(string $paymentId) {
-        return ($this->getEnv() == self::ENV_LIVE) ? 
+        return ($this->getEnv() == self::ENV_LIVE) ?
                 self::ENDPOINT_LIVE . $paymentId . '/cancels':
                 self::ENDPOINT_TEST . $paymentId . '/cancels';
     }
 
     public function getRefundPaymentUrl(string $chargeId) {
-        return ($this->getEnv() == self::ENV_LIVE) ? 
+        return ($this->getEnv() == self::ENV_LIVE) ?
                self::ENDPOINT_LIVE_CHARGES . $chargeId . '/refunds':
                self::ENDPOINT_TEST_CHARGES . $chargeId . '/refunds';
     }
+
+    /**
+     * check how much time has passed from starting payment
+     * compare time in format date('Y-m-d h:i:s')
+     * @param String $startPaymentTime
+     * @return bool
+     * @throws \Exception
+     */
+    public function isPaymentTimeoutEnded(string $startPaymentTime) {
+        $date1 = new \DateTime($startPaymentTime);
+        $now = new \DateTime();
+        $difference_in_seconds = $now->format('U') - $date1->format('U');
+        return $difference_in_seconds > env('EASY_PAYMENT_TIMEOUT');
+    }
+
 }
