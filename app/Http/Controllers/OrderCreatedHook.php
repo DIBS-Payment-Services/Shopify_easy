@@ -29,18 +29,13 @@ class OrderCreatedHook extends Controller{
     {
         $collectionPaymentDetail = PaymentDetails::getDetailsByCheckouId($request->get('checkout_id'));
 
-        $logger->debug('++++++++++++++++++++++++++++++++++++++++++++++++++++++++++');
-        $logger->debug('Order created shopify webhook start');
-
         $gateway_aliases = ['dibs_easy_checkout',
                             'nets_checkout',
                             'easy_checkout',
                             'dibs_easy_checkout_test'];
 
-
         if(!in_array($request->get('gateway'), $gateway_aliases)) {
-            $logger->debug($request->get('gateway'));
-            return response('HTTP/1.0 500 Internal Server Error', 200);
+            return response('Success', 200);
         }
         try{
 
@@ -60,12 +55,7 @@ class OrderCreatedHook extends Controller{
             $payment = $easyApiService->getPayment($paymentId);
             $jsonData = json_encode(['reference' => $request->get('name'),
                                      'checkoutUrl' => $payment->getCheckoutUrl()]);
-
-            $logger->debug('Order created shopify webhook updateReference start');
-            $easyApiService->updateReference($paymentId, $jsonData);
-            $logger->debug('Order created shopify webhook updateReference finish');
-            $logger->debug('shop url is = ' . $collectionPaymentDetail->first()->shop_url);
-            $logger->debug('-----------------------------------------------------------');
+              $easyApiService->updateReference($paymentId, $jsonData);
         } catch(\App\Exceptions\EasyException $e ) {
            $eh->handle($e);
            return response('HTTP/1.0 500 Internal Server Error', 500);

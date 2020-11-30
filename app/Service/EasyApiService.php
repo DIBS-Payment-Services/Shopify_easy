@@ -151,6 +151,7 @@ class EasyApiService implements EasyApiServiceInterface{
         $date1 = new \DateTime($startPaymentTime);
         $now = new \DateTime();
         $difference_in_seconds = $now->format('U') - $date1->format('U');
+        error_log('time in seconds passed form start payment: ' . $difference_in_seconds);
         return $difference_in_seconds > env('EASY_PAYMENT_TIMEOUT');
     }
 
