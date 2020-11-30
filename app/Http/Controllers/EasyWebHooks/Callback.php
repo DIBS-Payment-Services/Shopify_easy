@@ -61,7 +61,7 @@ class Callback extends Controller
 
             $easyApiService->setAuthorizationKey($secret_key);
 
-            if($easyApiService->isPaymentTimeoutEnded($checkoutTimeStart)) {
+            if($easyApiService->isPaymentTimeoutEnded($checkoutTimeStart, $request->get('x_reference'))) {
                 // cancel the payment on the gateway because order wasn't placed
                 $items = $pd->create_payment_items_params;
                 $res = json_decode($items, true);

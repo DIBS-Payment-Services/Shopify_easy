@@ -147,11 +147,16 @@ class EasyApiService implements EasyApiServiceInterface{
      * @return bool
      * @throws \Exception
      */
-    public function isPaymentTimeoutEnded(string $startPaymentTime) {
+    public function isPaymentTimeoutEnded(string $startPaymentTime, $checkoutId = null) {
         $date1 = new \DateTime($startPaymentTime);
         $now = new \DateTime();
         $difference_in_seconds = $now->format('U') - $date1->format('U');
+        error_log('*********************************************************************');
+        error_log('checkout statrted at: ' . $date1->format('Y-m-d H:i:s'));
+        error_log('payment finished at: ' . $now->format('Y-m-d H:i:s'));
+        error_log('checkout id:' . $checkoutId);
         error_log('time in seconds passed form start payment: ' . $difference_in_seconds);
+        error_log('*********************************************************************');
         return $difference_in_seconds > env('EASY_PAYMENT_TIMEOUT');
     }
 
