@@ -102,8 +102,7 @@ class EasyService implements EasyServiceInterface {
                       'authorization' => substr(str_shuffle(MD5(microtime())), 0, 10)],
                      ['eventName' => 'payment.charge.created',
                       'url' => $chargeCreatedHookUrl,
-                      'authorization' => substr(str_shuffle(MD5(microtime())), 0, 10)],
-
+                      'authorization' => $x_reference],
                      ['eventName' => 'payment.refund.completed',
                       'url' => $refundCompletedWebhook,
                       'authorization' => substr(str_shuffle(MD5(microtime())), 0, 10)],
