@@ -33,7 +33,18 @@ class RefundEasyHook extends Controller
         try{
               $data = $request->get('data');
               $paymentDetails = PaymentDetails::getDetailsByPaymentId($data['paymentId']);
+
+              // temporary workaround for cases when we can't find the transaction id
+              // we can try to find it by checkoutid
+              if($paymentDetails->count() == 0) {
+                  error_log('Paymentid not found for refunding' . $data['paymentId']);
+                  $checkoutId = $request->headers->get('authorization');
+                  $paymentDetails = PaymentDetails::getDetailsByCheckouId($checkoutId);
+                  error_log('checkoutid: '  . $checkoutId);
+              }
+
               $refundRequestParams = json_decode($paymentDetails->first()->refund_request_params, true);
+
               if(!empty($refundRequestParams)) {
                   $refundId = $data['refundId'];
                   $shopifyReturnParams->setX_GatewayReference($refundId);

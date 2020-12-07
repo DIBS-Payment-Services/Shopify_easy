@@ -34,8 +34,17 @@ class CancelEasyHook extends Controller
               $data = $request->get('data');
               $paymentDetails = PaymentDetails::getDetailsByPaymentId($data['paymentId']);
               $cancelRequestParams = json_decode($paymentDetails->first()->cancel_request_params, true);
-              if(!empty($cancelRequestParams)){
 
+              // temporary workaround for cases when we can't find the transaction id
+              // we can try to find it by checkoutid
+              if($paymentDetails->count() == 0) {
+                 error_log('Paymentid not found for cancelling' . $data['paymentId']);
+                 $checkoutId = $request->headers->get('authorization');
+                 $paymentDetails = PaymentDetails::getDetailsByCheckouId($checkoutId);
+                 error_log('checkoutid: '  . $checkoutId);
+              }
+
+             if(!empty($cancelRequestParams)){
                   $cancelId = $data['cancelId'];
                   $shopifyReturnParams->setX_GatewayReference($cancelId);
                   $shopifyReturnParams->setX_Reference($cancelRequestParams['x_reference']);
