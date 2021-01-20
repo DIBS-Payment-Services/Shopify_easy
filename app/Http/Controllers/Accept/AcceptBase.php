@@ -62,10 +62,12 @@ class AcceptBase extends Controller {
         try{
             $collectionPaymentDetail = PaymentDetails::getDetailsByCheckouId($this->request->get('checkout_id'));
             $checkoutTimeStart = $collectionPaymentDetail->first()->created_at;
+			/* Commenting code to resolve order cancel issue due to easy payment timeout
             if($this->easyApiService->isPaymentTimeoutEnded($checkoutTimeStart)) {
                 // redirect to cancel url
-                return redirect($this->request->get('x_url_cancel'));
-            }
+			  return redirect($this->request->get('x_url_cancel'));
+			  
+            }*/
 
             $keyField = static::KEY;
             $settingsCollection = MerchantSettings::getSettingsByShopOrigin($this->request->get('origin'));

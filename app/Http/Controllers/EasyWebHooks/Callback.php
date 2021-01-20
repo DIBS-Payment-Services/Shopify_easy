@@ -61,7 +61,8 @@ class Callback extends Controller
 
             $easyApiService->setAuthorizationKey($secret_key);
 
-            if($easyApiService->isPaymentTimeoutEnded($checkoutTimeStart, $request->get('x_reference'))) {
+        /*  Commenting code to resolve order cancellation issue due to timeout
+			if($easyApiService->isPaymentTimeoutEnded($checkoutTimeStart, $request->get('x_reference'))) {
                 // cancel the payment on the gateway because order wasn't placed
                 $items = $pd->create_payment_items_params;
                 $res = json_decode($items, true);
@@ -71,7 +72,8 @@ class Callback extends Controller
                 }
                $easyApiService->voidPayment($pd->dibs_paymentid, json_encode($data));
                die('stop processing callback');
-            }
+            }  */
+			
             $data = $request->get('data');
             $shopifyReturnParams->setX_AccountId($request->get('merchantId'));
             $shopifyReturnParams->setX_Amount($data['order']['amount']['amount'] / 100);
