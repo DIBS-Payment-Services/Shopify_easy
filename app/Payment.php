@@ -8,7 +8,7 @@ namespace App;
  * @author mabe
  */
 class Payment {
-    
+
     private $paymentObj;
 
     public function __construct(string $paymentJson) {
@@ -20,7 +20,7 @@ class Payment {
     }
 
     public function getPaymentType() {
-        return isset($this->paymentObj->payment->paymentDetails->paymentType) ? 
+        return isset($this->paymentObj->payment->paymentDetails->paymentType) ?
                      $this->paymentObj->payment->paymentDetails->paymentType : null;
     }
 
@@ -32,13 +32,13 @@ class Payment {
     }
 
     public function getPaymentMethod() {
-        return isset($this->paymentObj->payment->paymentDetails->paymentMethod) ? 
-                    $this->paymentObj->payment->paymentDetails->paymentMethod : null; 
+        return isset($this->paymentObj->payment->paymentDetails->paymentMethod) ?
+                    $this->paymentObj->payment->paymentDetails->paymentMethod : null;
     }
 
     public function getReservedAmount() {
-        return isset($this->paymentObj->payment->summary->reservedAmount) ? 
-                    $this->paymentObj->payment->summary->reservedAmount : null; 
+        return isset($this->paymentObj->payment->summary->reservedAmount) ?
+                    $this->paymentObj->payment->summary->reservedAmount : null;
     }
 
     public function getCheckoutUrl() {
@@ -50,5 +50,10 @@ class Payment {
             $charges = current($this->paymentObj->payment->charges);
             return $charges->chargeId;
         }
+    }
+
+    public function getChargedAmount() {
+       return isset($this->paymentObj->payment->summary->chargedAmount) ?
+       $this->paymentObj->payment->summary->chargedAmount : null;
     }
 }

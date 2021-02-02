@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Exceptions\ShopifyApiException;
+use App\Service\Api\Client;
 use \Illuminate\Http\Request;
 
 class ShopifyApiService  implements ShopifyApiServiceInterface{
@@ -15,7 +16,7 @@ class ShopifyApiService  implements ShopifyApiServiceInterface{
     const GET_PAYMENT_DETAILS_URL_TEST_PREFIX = 'https://test.api.dibspayment.eu/v1/payments/';
 
     private $client;
-    public function __construct(\App\Service\Api\Client $client) {
+    public function __construct(Client $client) {
       $this->client = $client;
     }
 
@@ -23,6 +24,7 @@ class ShopifyApiService  implements ShopifyApiServiceInterface{
      *
      * @param Request $request
      * @return string|null
+     * @throws ShopifyApiException
      */
     public function auth(Request $request) {
        $shop = $request->get('shop');
@@ -41,6 +43,7 @@ class ShopifyApiService  implements ShopifyApiServiceInterface{
      * @param string $acessToken
      * @param string $shopUrl
      * @return string|null
+     * @throws ShopifyApiException
      */
     public function getShopInfo($acessToken, $shopUrl) {
         $this->client->setHeader('X-Shopify-Access-Token', $acessToken);
@@ -54,6 +57,7 @@ class ShopifyApiService  implements ShopifyApiServiceInterface{
      * @param string $acessToken
      * @param string $shopUrl
      * @return string|null
+     * @throws ShopifyApiException
      */
     public function getOrder(string $acessToken, string $shopUrl, string $orderId) {
         $this->client->setHeader('X-Shopify-Access-Token', $acessToken);
@@ -68,6 +72,7 @@ class ShopifyApiService  implements ShopifyApiServiceInterface{
      * @param string $shopUrl
      * @param string $checkoutId
      * @return array
+     * @throws ShopifyApiException
      */
     public function getCheckoutById(string $acessToken, string $shopUrl, string $checkoutId) {
         $this->client->setHeader('X-Shopify-Access-Token', $acessToken);
@@ -87,6 +92,7 @@ class ShopifyApiService  implements ShopifyApiServiceInterface{
      *
      * @param string $url
      * @param array $params
+     * @throws ShopifyApiException
      */
     public function paymentCallback(string $url, array $params, string $type = null) {
         $this->client->post($url, $params);
@@ -128,6 +134,30 @@ class ShopifyApiService  implements ShopifyApiServiceInterface{
        }
    }
 
+    /**
+     * set transaction to paid status for mobilepay and Swish payments
+     * @param string $accessToken
+     * @param string $shopUrl
+     * @param string $transactionId
+     * @param string $orderId
+     * @throws ShopifyApiException
+     */
+   public function payTransaction(string $accessToken, string $shopUrl, string $transactionId, string $orderId) {
+       $this->client->setHeader('X-Shopify-Access-Token', $accessToken);
+       $this->client->setHeader('Content-Type', 'application/json');
+       $url = $this->getPayTransactionUrl($shopUrl, $orderId);
+       $capture_data = array(
+           'transaction' =>
+               array(
+                   'kind' => 'capture',
+                   'source' => 'external',
+                   'authorization' => $transactionId
+               )
+       );
+       $this->client->post($url, json_encode($capture_data));
+       $this->handleResponse($this->client);
+   }
+
    public static function encryptKey($data) {
         return openssl_encrypt($data, 'AES-128-ECB', env('EASY_KEY_SALT'));
    }
@@ -161,7 +191,12 @@ class ShopifyApiService  implements ShopifyApiServiceInterface{
               'https://' . $shopUrl . '/admin/api/2019-04/webhooks.json' );
    }
 
-   protected function handleResponse(\App\Service\Api\Client $client) {
+   private function getPayTransactionUrl(string $shopUrl, string $orderId) {
+       return str_replace(['api_version', 'order_id'], [env('SHOPIFY_API_VERSION'), $orderId],
+           'https://' . $shopUrl . '/admin/api/api_version/orders/order_id/transactions.json' );
+   }
+
+   protected function handleResponse(Client $client) {
       if($client->isSuccess()) {
           return $client->getResponse();
       } else {

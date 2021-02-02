@@ -2,11 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\EasyApiExceptionHandler;
+use App\Exceptions\Handler;
 use Illuminate\Http\Request;
 use App\Service\ShopifyApiService;
 use App\PaymentDetails;
 use App\MerchantSettings;
 use App\Service\EasyApiService;
+use App\Exceptions\ShopifyApiException;
+use App\Exceptions\ShopifyApiExceptionHandler;
+use Illuminate\Http\Response;
+use Illuminate\Log\Logger;
 
 /**
  * Description of OrderCreated
@@ -18,21 +24,29 @@ class OrderCreatedHook extends Controller{
     /**
      * Handle the incoming request.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @param EasyApiService $easyApiService
+     * @param Request $request
+     * @param EasyApiExceptionHandler $eh
+     * @param Handler $handler
+     * @param Logger $logger
+     * @param ShopifyApiService $shopifyApiService
+     * @param ShopifyApiExceptionHandler $shopifyApiExceptionHandler
+     * @return Response
      */
     public function __invoke(EasyApiService $easyApiService,
                              Request $request,
-                             \App\Exceptions\EasyApiExceptionHandler $eh,
-                             \App\Exceptions\Handler $handler,
-                             \Illuminate\Log\Logger $logger)
+                             EasyApiExceptionHandler $eh,
+                             Handler $handler,
+                             Logger $logger,
+                             ShopifyApiService $shopifyApiService,
+                             ShopifyApiExceptionHandler $shopifyApiExceptionHandler)
     {
         $collectionPaymentDetail = PaymentDetails::getDetailsByCheckouId($request->get('checkout_id'));
 
         $gateway_aliases = ['dibs_easy_checkout',
-                            'nets_checkout',
-                            'easy_checkout',
-                            'dibs_easy_checkout_test'];
+            'nets_checkout',
+            'easy_checkout',
+            'dibs_easy_checkout_test'];
 
         if(!in_array($request->get('gateway'), $gateway_aliases)) {
             return response('Success', 200);
@@ -53,17 +67,31 @@ class OrderCreatedHook extends Controller{
             }
             $easyApiService->setAuthorizationKey($key);
             $payment = $easyApiService->getPayment($paymentId);
+
+            /* Call shopify transaction api to create transaction for order status as paid in case of swish payments */
+            if($payment->getChargedAmount() != null) {
+                $shop = $settingsCollection->first()->shop_url;
+                $accessToken = $settingsCollection->first()->access_token;
+                $shopifyApiService->payTransaction($accessToken, $shop, $paymentId, $request->get('id'));
+            }
+
             $jsonData = json_encode(['reference' => $request->get('name'),
-                                     'checkoutUrl' => $payment->getCheckoutUrl()]);
-              $easyApiService->updateReference($paymentId, $jsonData);
-        } catch(\App\Exceptions\EasyException $e ) {
-           $eh->handle($e);
-           return response('HTTP/1.0 500 Internal Server Error', 500);
+                'checkoutUrl' => $payment->getCheckoutUrl()]);
+            $easyApiService->updateReference($paymentId, $jsonData);
+
+        }
+        catch(ShopifyApiException $e) {
+            $shopifyApiExceptionHandler->handle($e, $request->toArray());
+            return response('HTTP/1.0 500 Internal Server Error', 500);
+        }
+        catch(\App\Exceptions\EasyException $e) {
+            $eh->handle($e);
+            return response('HTTP/1.0 500 Internal Server Error', 500);
         }
         catch(\Exception $e) {
-           $handler->report($e);
-           $logger->debug($request->all());
-           return response('HTTP/1.0 500 Internal Server Error', 500);
+            $handler->report($e);
+            $logger->debug($request->all());
+            return response('HTTP/1.0 500 Internal Server Error', 500);
         }
     }
 }

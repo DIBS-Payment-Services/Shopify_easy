@@ -2,6 +2,10 @@
 
 namespace App\Service;
 
+use App\Exceptions\EasyException;
+use App\Payment;
+use App\Service\Api\Client;
+
 /**
  * Description of EasyApiService
  *
@@ -20,13 +24,13 @@ class EasyApiService implements EasyApiServiceInterface{
 
     /**
      *
-     * @var \App\Service\Api\Client
+     * @var Client
      */
     private $client;
 
     private $env;
 
-    public function __construct(\App\Service\Api\Client $client) {
+    public function __construct(Client $client) {
       $this->client = $client;
       $this->client->setHeader('Content-Type', 'text/json');
       $this->client->setHeader('Accept', 'test/json');
@@ -48,7 +52,7 @@ class EasyApiService implements EasyApiServiceInterface{
     /**
      *
      * @param string $data
-     * @return \App\Service\Api\Client
+     * @return Client
      */
     public function createPayment(string $data) {
       $this->client->setHeader('commercePlatformTag:', 'easy_shopify_inject');
@@ -60,12 +64,13 @@ class EasyApiService implements EasyApiServiceInterface{
     /**
      *
      * @param string $paymentId
-     * @return \App\Payment
+     * @return Payment
+     * @throws EasyException
      */
     public function getPayment(string $paymentId) {
       $url = $this->getGetPaymentUrl($paymentId);
       $this->client->get($url);
-      return new \App\Payment($this->handleResponse($this->client));
+      return new Payment($this->handleResponse($this->client));
     }
 
    public function updateReference(string $paymentId, string $data) {
@@ -92,7 +97,7 @@ class EasyApiService implements EasyApiServiceInterface{
       $this->handleResponse($this->client);
     }
 
-    protected function handleResponse(\App\Service\Api\Client $client) {
+    protected function handleResponse(Client $client) {
       if($client->isSuccess()) {
           return $client->getResponse();
       } else {
@@ -101,7 +106,7 @@ class EasyApiService implements EasyApiServiceInterface{
               $errorMessage = $client->getErrorMessage();
           }
           error_log($errorMessage);
-          throw new \App\Exceptions\EasyException($errorMessage, $client->getHttpStatus());
+          throw new EasyException($errorMessage, $client->getHttpStatus());
       }
     }
 
