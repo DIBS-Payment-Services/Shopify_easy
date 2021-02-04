@@ -68,17 +68,19 @@ class OrderCreatedHook extends Controller{
             $easyApiService->setAuthorizationKey($key);
             $payment = $easyApiService->getPayment($paymentId);
 
+            $shop = $settingsCollection->first()->shop_url;
+            $accessToken = $settingsCollection->first()->access_token;
+            $order = $shopifyApiService->getOrder($accessToken, $shop, $request->get('id'));
+            $result = json_decode($order, true);
+
             /* Call shopify transaction api to create transaction for order status as paid in case of swish payments */
-            if($payment->getChargedAmount() != null) {
-                $shop = $settingsCollection->first()->shop_url;
-                $accessToken = $settingsCollection->first()->access_token;
+            if('authorized' == $result['order']['financial_status'] && $payment->getChargedAmount() != null) {
                 $shopifyApiService->payTransaction($accessToken, $shop, $paymentId, $request->get('id'));
             }
 
             $jsonData = json_encode(['reference' => $request->get('name'),
                 'checkoutUrl' => $payment->getCheckoutUrl()]);
             $easyApiService->updateReference($paymentId, $jsonData);
-
         }
         catch(ShopifyApiException $e) {
             $shopifyApiExceptionHandler->handle($e, $request->toArray());
