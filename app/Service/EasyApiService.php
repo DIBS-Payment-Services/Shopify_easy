@@ -19,8 +19,18 @@ class EasyApiService implements EasyApiServiceInterface{
     const ENDPOINT_TEST_CHARGES = 'https://test.api.dibspayment.eu/v1/charges/';
     const ENDPOINT_LIVE_CHARGES = 'https://api.dibspayment.eu/v1/charges/';
 
+    const D2_TRANSACTION_INFO_URL_PATTERN = 'https://<username>:<password>@payment.architrade.com/cgi-adm/payinfo.cgi';
+    const REFUND_URL_PATTERN = 'https://<username>:<password>@payment.architrade.com/cgi-adm/refund.cgi';
+    const CAPTURE_URL = 'https://payment.architrade.com/cgi-bin/capture.cgi';
+
     const ENV_LIVE = 'live';
     const ENV_TEST = 'test';
+
+    const MERCHANT_TYPE_D2 = 'D2';
+    const MERCHANT_TYPE_EASY = 'EASY';
+
+    const API_USER_LOGIN_PREFIX = 'Shopify';
+
 
     /**
      *
@@ -145,6 +155,46 @@ class EasyApiService implements EasyApiServiceInterface{
                self::ENDPOINT_TEST_CHARGES . $chargeId . '/refunds';
     }
 
+    public function capturePaymentD2(array $params) {
+        $url = self::CAPTURE_URL;
+        $this->client->post($url, $params);
+        $result = $this->handleResponse($this->client);
+        error_log($result);
+    }
+
+    public function refundPaymentD2(string $merchantId, array $params){
+        $url = str_replace(array('<username>',
+            '<password>'), array(self::API_USER_LOGIN_PREFIX . $merchantId,
+            env('D2_NETS_API_PASSWORD')), self::REFUND_URL_PATTERN);
+        $this->client->post($url, $params);
+        $result = $this->handleResponse($this->client);
+        error_log($result);
+    }
+
+    public function getD2Payment(string $merchantId, string $transactionId) {
+
+        error_log('getD2Payment');
+
+        $url = str_replace(array('<username>',
+            '<password>'), array($merchantId, env('D2_NETS_API_PASSWORD')), self::D2_TRANSACTION_INFO_URL_PATTERN);
+        $data = ['transact' => $transactionId];
+
+        $this->client->post($url, $data);
+
+        $result = $this->handleResponse($this->client);
+
+        preg_match('/orderid=(.*?)&/', $result, $matches);
+
+        $res = isset($matches[1]) ? $matches[1]: null;
+
+        error_log('getD2Payment1');
+
+        error_log($res);
+
+        return $res;
+
+    }
+
     /**
      * check how much time has passed from starting payment
      * compare time in format date('Y-m-d h:i:s')
@@ -165,6 +215,16 @@ class EasyApiService implements EasyApiServiceInterface{
         error_log('*********************************************************************');
         */
         return $difference_in_seconds > env('EASY_PAYMENT_TIMEOUT');
+    }
+
+    /**
+     * @param $merchantId
+     * @return string
+     *
+     */
+    public function detectMerchantType($merchantId) {
+        $pattern = '/^1000/';
+        return preg_match($pattern, $merchantId) ? self::MERCHANT_TYPE_EASY : self::MERCHANT_TYPE_D2;
     }
 
 }

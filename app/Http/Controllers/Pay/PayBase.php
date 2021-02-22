@@ -18,6 +18,11 @@ use Illuminate\Support\Facades\DB;
  */
 class PayBase extends \App\Http\Controllers\Controller {
 
+    // D2 settings
+    const MERCHANT_TYPE_D2 = 'D2';
+    const MERCHANT_TYPE_EASY = 'EASY';
+    const DIBS_ENTRYPOINT = 'https://payment.architrade.com/paymentweb/start.action';
+
     protected $shopify_access_token;
     protected $shop_url;
     protected $shopifyAppService;
@@ -47,6 +52,14 @@ class PayBase extends \App\Http\Controllers\Controller {
     }
 
    protected function startPayment(Request $request) {
+       if(self::MERCHANT_TYPE_D2 == $this->easyApiService->detectMerchantType($request->get('x_account_id'))) {
+           $params = $this->easyService->generateD2RequestParameters($request);
+           $params['url'] = self::DIBS_ENTRYPOINT;
+           $params['method'] = 'POST';
+           $params['params'] = $this->easyService->generateD2RequestParameters($request);
+           return view('d2-redirect-form', $params);
+       }
+
       $settingsCollection = MerchantSettings::getSettingsByMerchantId($request->get('x_account_id'));
       if($settingsCollection->count() > 1) {
           $settingsCollection = MerchantSettings::getSettingsByShopName($request->get('x_shop_name'));
@@ -120,5 +133,17 @@ class PayBase extends \App\Http\Controllers\Controller {
        return view('easy-pay-error', ['message' => $message,
                    'back_link' => $this->request->get('x_url_complete')]);
    }
+
+    /**
+     * @param $merchantId
+     * @return string
+     *
+     */
+   protected function detectMerchantType($merchantId) {
+        $pattern = '/^1000/';
+        return preg_match($pattern, $merchantId) ? self::MERCHANT_TYPE_EASY : self::MERCHANT_TYPE_D2;
+   }
+
+
 
 }

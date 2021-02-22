@@ -50,3 +50,6 @@ Route::post('callback', 'EasyWebHooks\Callback');
 Route::get('key', 'Util');
 
 Route::post('key', 'Util');
+
+Route::any('accept_d2', 'D2\Accept');
+Route::post('callback_d2', 'D2\Callback');

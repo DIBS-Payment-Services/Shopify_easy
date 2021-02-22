@@ -430,4 +430,44 @@ class EasyService implements EasyServiceInterface
             'id' => $request->get('x_reference')
         ];
     }
+
+    /**
+     * Build request array
+     * for initial request to DIBS
+     * Convert shopify params to DIBS params
+     *
+     * @param Request $request
+     * @return array
+     */
+    public function generateD2RequestParameters(Request $request) {
+        $x_url_complete = $this->request->get('x_url_complete');
+        $merchantId = $request->get('x_account_id');
+        $amount = $this->request->get('x_amount');
+        $acceptUrl = url('accept_d2');
+        $callbackUrl = url('callback_d2');
+
+        $shopifyParams['accepturl']   = "$acceptUrl?x_url_complete={$x_url_complete}&merchantId={$merchantId}&x_amount=$amount";
+        $shopifyParams['cancelurl']   = $this->request->get('x_url_cancel');
+
+        $shopifyCallbackUrl = $this->request->get('x_url_callback');
+
+        $shopifyParams['callbackurl'] = "$callbackUrl?callback_url={$shopifyCallbackUrl}&merchantId={$merchantId}&x_amount=$amount";
+
+        $shopifyParams['amount'] = $this->getAmount();
+        $shopifyParams['currency'] = $this->request->get('x_currency');
+        $shopifyParams['merchant'] = $merchantId;
+        $shopifyParams['orderid'] = $this->request->get('x_reference');
+
+        if($this->request->get('x_test') == 'true') {
+            $shopifyParams['test'] = 1;
+        }
+
+        if(isset($shopifyParams['x_url_cancel'])) {
+            $shopifyParams['x_url_cancel'] =  $shopifyParams['x_url_cancel'];
+        }
+
+        return $shopifyParams;
+    }
+
+
 }
