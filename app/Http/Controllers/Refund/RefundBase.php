@@ -108,8 +108,9 @@ class RefundBase extends Controller
 
    protected function handle() {
           try{
+             $params = $this->request->all();
              if('D2' == $this->easyApiService->detectMerchantType($this->request->get('x_account_id'))) {
-                 $params = $this->request->all();
+
                  $orderid = $this->easyApiService->getD2Payment($this->request->get('x_account_id'), $this->request->get('x_gateway_reference'));
 
                  $data = array('merchant' => $this->request->get('x_account_id'),
@@ -134,7 +135,6 @@ class RefundBase extends Controller
              }else {
                   $paymentDetails = PaymentDetails::getDetailsByPaymentId($this->request->get('x_gateway_reference'));
                   $settingsCollection = MerchantSettings::getSettingsByShopOrigin($paymentDetails->first()->shop_url);
-                  $params = $this->request->all();
                   $params['x_test'] = (static::ENV == 'live') ? 'false' : 'true';
                   $fieldName = static::KEY;
                   $key = ShopifyApiService::decryptKey($settingsCollection->first()->$fieldName);
