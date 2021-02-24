@@ -2,6 +2,11 @@
 
 namespace App\Http\Controllers\Capture;
 
+use App\Exceptions\EasyApiExceptionHandler;
+use App\Exceptions\Handler;
+use App\Exceptions\ShopifyApiExceptionHandler;
+use App\Http\Controllers\Controller;
+use App\ShopifyReturnParams;
 use Illuminate\Http\Request;
 use App\Service\ShopifyApiService;
 use App\MerchantSettings;
@@ -9,13 +14,14 @@ use App\Service\EasyService;
 use App\Service\EasyApiService;
 use App\CheckoutObject;
 use App\PaymentDetails;
+use Illuminate\Log\Logger;
 
 /**
  * Description of LaraTest
  *
  * @author mabe
  */
-class CaptureBase extends \App\Http\Controllers\Controller {
+class CaptureBase extends Controller {
 
     const MERCHANT_TYPE_D2 = 'D2';
     const MERCHANT_TYPE_EASY = 'EASY';
@@ -34,24 +40,52 @@ class CaptureBase extends \App\Http\Controllers\Controller {
      * @var CheckoutObject
      */
     private $checkoutObject;
+
+    /**
+     * @var Request
+     */
     private $request;
+
+    /**
+     * @var EasyService
+     */
     private $easyService;
+
+    /**
+     * @var EasyApiExceptionHandler
+     */
     private $eh;
+
+    /**
+     * @var ShopifyApiExceptionHandler
+     */
     private $ehsh;
+
+    /**
+     * @var Handler
+     */
     private $handler;
+
+    /**
+     * @var Logger
+     */
     private $logger;
+
+    /**
+     * @var ShopifyReturnParams
+     */
     private $shopifyReturnParams;
 
     public function __construct(Request $request,
                                 EasyService $easyService,
-                                \App\Exceptions\EasyApiExceptionHandler $eh,
-                                \App\Exceptions\ShopifyApiExceptionHandler $ehsh,
-                                \App\Exceptions\Handler $handler,
+                                EasyApiExceptionHandler $eh,
+                                ShopifyApiExceptionHandler $ehsh,
+                                Handler $handler,
                                 CheckoutObject $checkoutObject,
                                 EasyApiService $easyApiService,
                                 ShopifyApiService $shopifyApiService,
-                                \Illuminate\Log\Logger $logger,
-                                \App\ShopifyReturnParams $shopifyReturnParams
+                                Logger $logger,
+                                ShopifyReturnParams $shopifyReturnParams
 
             ) {
         $this->request = $request;
@@ -82,7 +116,6 @@ class CaptureBase extends \App\Http\Controllers\Controller {
                           'orderid'  => $orderid
                  ];
 
-                 error_log(print_r($data, true));
 
                  $this->easyApiService->capturePaymentD2($data);
 

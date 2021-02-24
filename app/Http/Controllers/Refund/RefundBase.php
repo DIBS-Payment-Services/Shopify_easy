@@ -2,16 +2,21 @@
 
 namespace App\Http\Controllers\Refund;
 
+use App\Exceptions\EasyApiExceptionHandler;
+use App\Exceptions\Handler;
+use App\Exceptions\ShopifyApiExceptionHandler;
+use App\Http\Controllers\Controller;
+use App\ShopifyReturnParams;
 use Illuminate\Http\Request;
-
 use App\Service\ShopifyApiService;
 use App\MerchantSettings;
 use App\Service\EasyService;
 use App\Service\EasyApiService;
 use App\CheckoutObject;
 use App\PaymentDetails;
+use Illuminate\Log\Logger;
 
-class RefundBase extends \App\Http\Controllers\Controller
+class RefundBase extends Controller
 {
      /**
      * @var ShopifyApiService
@@ -27,23 +32,66 @@ class RefundBase extends \App\Http\Controllers\Controller
      * @var CheckoutObject
      */
     private $checkoutObject;
+
+    /**
+     * @var Request
+     */
     private $request;
+
+    /**
+     * @var EasyService
+     */
     private $easyService;
+
+    /**
+     * @var EasyApiExceptionHandler
+     */
     private $eh;
+
+    /**
+     * @var ShopifyApiExceptionHandler
+     */
     private $ehsh;
+
+    /**
+     * @var Handler
+     */
     private $handler;
+
+    /**
+     * @var Logger
+     */
     private $logger;
 
+    /**
+     * @var ShopifyReturnParams
+     */
+    private $shopifyReturnParams;
+
+    /**
+     * RefundBase constructor.
+     * @param Request $request
+     * @param EasyService $easyService
+     * @param EasyApiExceptionHandler $eh
+     * @param ShopifyApiExceptionHandler $ehsh
+     * @param Handler $handler
+     * @param CheckoutObject $checkoutObject
+     * @param EasyApiService $easyApiService
+     * @param ShopifyApiService $shopifyApiService
+     * @param Logger $logger
+     * @param ShopifyReturnParams $shopifyReturnParams
+     */
     public function __construct(Request $request,
                                 EasyService $easyService,
-                                \App\Exceptions\EasyApiExceptionHandler $eh,
-                                \App\Exceptions\ShopifyApiExceptionHandler $ehsh,
-                                \App\Exceptions\Handler $handler,
+                                EasyApiExceptionHandler $eh,
+                                ShopifyApiExceptionHandler $ehsh,
+                                Handler $handler,
                                 CheckoutObject $checkoutObject,
                                 EasyApiService $easyApiService,
                                 ShopifyApiService $shopifyApiService,
-                                \Illuminate\Log\Logger $logger
-            ) {
+                                Logger $logger,
+                                ShopifyReturnParams $shopifyReturnParams
+        ) {
         $this->request = $request;
         $this->easyService = $easyService;
         $this->eh = $eh;
@@ -55,6 +103,7 @@ class RefundBase extends \App\Http\Controllers\Controller
         $this->easyApiService = $easyApiService;
         $this->shopifyApiService = $shopifyApiService;
         $this->logger = $logger;
+        $this->shopifyReturnParams = $shopifyReturnParams;
     }
 
    protected function handle() {
@@ -70,13 +119,9 @@ class RefundBase extends \App\Http\Controllers\Controller
                      'currency' => $this->request->get('x_currency'),
                      'textreply' => 'yes');
 
-                 error_log(print_r($data, true));
-
-                 $this->easyApiService->refundPaymentD2($data);
-
+                 $this->easyApiService->refundPaymentD2($this->request->get('x_account_id'), $data);
                  $this->flushHeader();
                  sleep(30);
-
                  $this->shopifyReturnParams->setX_Amount($params['x_amount']);
                  $this->shopifyReturnParams->setX_GatewayReference($params['x_gateway_reference']);
                  $this->shopifyReturnParams->setX_Reference($params['x_reference']);
@@ -86,7 +131,6 @@ class RefundBase extends \App\Http\Controllers\Controller
                  $pass = env('D2_NETS_GATEWAY_PASSWORD');
                  $this->shopifyReturnParams->setX_Signature($this->shopifyApiService->calculateSignature($this->shopifyReturnParams->getParams(),$pass));
                  $this->shopifyApiService->paymentCallback($params['x_url_callback'], $this->shopifyReturnParams->getParams());
-
              }else {
                   $paymentDetails = PaymentDetails::getDetailsByPaymentId($this->request->get('x_gateway_reference'));
                   $settingsCollection = MerchantSettings::getSettingsByShopOrigin($paymentDetails->first()->shop_url);
@@ -128,6 +172,18 @@ class RefundBase extends \App\Http\Controllers\Controller
             $this->logger->debug($this->request->all());
             return response('HTTP/1.0 500 Internal Server Error', 500);
          }
+    }
+
+    protected function flushHeader() {
+        ob_start();
+        echo "OK";
+        $size = ob_get_length();
+        header("Content-Encoding: none");
+        header("Content-Length: {$size}");
+        header("Connection: close");
+        ob_end_flush();
+        ob_flush();
+        flush();
     }
 
 }
