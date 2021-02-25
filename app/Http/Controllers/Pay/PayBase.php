@@ -21,7 +21,7 @@ class PayBase extends \App\Http\Controllers\Controller {
     // D2 settings
     const MERCHANT_TYPE_D2 = 'D2';
     const MERCHANT_TYPE_EASY = 'EASY';
-    const DIBS_ENTRYPOINT = 'https://payment.architrade.com/paymentweb/start.action';
+    const D2_SHOPIFY_REDIRECT_URL = 'https://pay1.dibspayment.com/shopify/live/pub/?decorator=responsive';
 
     protected $shopify_access_token;
     protected $shop_url;
@@ -53,10 +53,10 @@ class PayBase extends \App\Http\Controllers\Controller {
 
    protected function startPayment(Request $request) {
        if(self::MERCHANT_TYPE_D2 == $this->easyApiService->detectMerchantType($request->get('x_account_id'))) {
-           $params = $this->easyService->generateD2RequestParameters($request);
-           $params['url'] = self::DIBS_ENTRYPOINT;
+           //$params = $this->easyService->generateD2RequestParameters($request);
+           $params['url'] = self::D2_SHOPIFY_REDIRECT_URL;
            $params['method'] = 'POST';
-           $params['params'] = $this->easyService->generateD2RequestParameters($request);
+           $params['params'] = $request->all();
            return view('d2-redirect-form', $params);
        }
 

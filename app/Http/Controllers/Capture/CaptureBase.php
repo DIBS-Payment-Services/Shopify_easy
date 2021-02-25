@@ -106,22 +106,15 @@ class CaptureBase extends Controller {
           try{
               $params = $this->request->all();
              if(self::MERCHANT_TYPE_D2 == $this->easyApiService->detectMerchantType($this->request->get('x_account_id'))) {
-
-
                  $orderid = $this->easyApiService->getD2Payment($this->request->get('x_account_id'), $this->request->get('x_gateway_reference'));
-
                  $data = ['merchant' => $this->request->get('x_account_id'),
                           'amount'   => $this->request->get('x_amount') * 100,
                           'transact' => $this->request->get('x_gateway_reference'),
                           'orderid'  => $orderid
                  ];
-
-
                  $this->easyApiService->capturePaymentD2($data);
-
                  $this->flushHeader();
                  sleep(30);
-
                  $this->shopifyReturnParams->setX_Amount($params['x_amount']);
                  $this->shopifyReturnParams->setX_GatewayReference($params['x_gateway_reference']);
                  $this->shopifyReturnParams->setX_Reference($params['x_reference']);
@@ -142,16 +135,12 @@ class CaptureBase extends Controller {
 
                  $params['x_test'] = (static::ENV == 'live') ? 'false' : 'true';
 
-                 error_log( print_r($params, true) );
-
                  $fieldName = static::KEY;
                  $key = ShopifyApiService::decryptKey($settingsCollection->first()->$fieldName);
                  $this->easyApiService->setEnv(static::ENV);
                  $this->easyApiService->setAuthorizationKey($key);
                  unset($params['x_signature']);
                  $gatewayPassword = $settingsCollection->first()->gateway_password;
-
-                 error_log( $gatewayPassword );
 
                  if($this->request->get('x_signature') != $this->shopifyApiService->calculateSignature($params, $gatewayPassword)) {
                      throw new \App\Exceptions\ShopifyApiException('Singnature is wrong while trying to capture');
