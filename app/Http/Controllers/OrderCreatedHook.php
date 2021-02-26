@@ -46,10 +46,11 @@ class OrderCreatedHook extends Controller{
         $gateway_aliases = ['dibs_easy_checkout',
             'nets_checkout',
             'easy_checkout',
-            'dibs_easy_checkout_test'];
+            'dibs_easy_checkout_test',
+            'nets_payment_d2_'];
 
         if(!in_array($request->get('gateway'), $gateway_aliases)) {
-            return response('Success', 200);
+                     return response('Success', 200);
         }
         try{
 
