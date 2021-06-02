@@ -32,7 +32,8 @@ class EasyService implements EasyServiceInterface
                 'reference' => $this->request->get('x_reference')
             ],
             'checkout' => [
-                'termsUrl' => $settings['terms_and_conditions_url']
+                'termsUrl' => $settings['terms_and_conditions_url'],
+                'merchantTermsUrl' => $settings['merchant_terms_url']
             ]
         ];
 
@@ -108,6 +109,7 @@ class EasyService implements EasyServiceInterface
 
         $data['checkout']['returnUrl'] = "$url?x_url_complete={$x_url_complete}&origin={$shop_url}&checkout_id={$x_reference}&x_url_cancel={$x_url_cancel}";
         $data['checkout']['integrationType'] = 'HostedPaymentPage';
+        $data['checkout']['cancelUrl'] = "{$x_url_cancel}";
         $appUrl = env('SHOPIFY_APP_URL');
         $callbackUrl = $this->request->get('x_url_callback');
         $reservationCreatedurl = "https://{$appUrl}/callback?callback_url={$callbackUrl}&x_reference={$x_reference}&shop_url={$shop_url}";
